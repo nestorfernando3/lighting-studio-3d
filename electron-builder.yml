@@ -1,0 +1,49 @@
+appId: com.upca.lightstudio3d
+productName: Light Studio 3D
+copyright: Copyright © 2024 UPCA
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - dist/**/*
+  - electron/**/*
+  - public/**/*
+  - package.json
+
+mac:
+  category: public.app-category.education
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
+  icon: build/icon.icns
+  darkModeSupport: true
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: build/icon.ico
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Light Studio 3D
+
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  category: Education
+  icon: build/icons

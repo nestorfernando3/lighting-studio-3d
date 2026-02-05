@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description"
+    content="Aprende iluminación fotográfica de forma interactiva. Software educativo de la Corporación Universitaria Politécnico de la Costa.">
+  <meta name="author" content="Néstor De León - UPCA">
+  <meta name="theme-color" content="#C41E3A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Light Studio 3D - UPCA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@350;400;450;500;550;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+  <canvas id="scene-canvas"></canvas>
+
+  <div id="app">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="app-icon">💡</div>
+        <div class="header-title">
+          <h1>Light Studio 3D</h1>
+          <span class="header-subtitle">Iluminación Fotográfica</span>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="upca-badge">UPCA</div>
+      </div>
+
+      <div class="header-right">
+        <button class="icon-button" id="btn-help" title="Ayuda">?</button>
+        <button class="icon-button" id="btn-screenshot" title="Captura de pantalla">📷</button>
+      </div>
+    </header>
+
+    <!-- Progress -->
+    <div class="progress-bar" id="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+
+    <!-- Teaching Panel -->
+    <aside class="teach-panel" id="teach-panel">
+      <div class="lesson-header">
+        <div class="lesson-number" id="lesson-number">1</div>
+        <div class="lesson-meta">
+          <span class="lesson-category" id="lesson-category">Clásico</span>
+          <h2 class="lesson-title" id="lesson-title">Rembrandt</h2>
+        </div>
+        <div class="difficulty-badge" id="difficulty-badge">
+          <span class="dot active"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+      </div>
+
+      <div class="panel-scroll">
+        <div class="goal-section">
+          <div class="section-label">
+            <span class="icon">🎯</span>
+            Tu Objetivo
+          </div>
+          <p id="goal-text">Crear un triángulo de luz en la mejilla del lado de sombra.</p>
+        </div>
+
+        <div class="observe-section">
+          <div class="section-label">
+            <span class="icon">👁️</span>
+            Qué Observar
+          </div>
+          <ul class="observe-list" id="observe-list"></ul>
+        </div>
+
+        <div class="diagram-section">
+          <div class="section-label">
+            <span class="icon">📐</span>
+            Vista Superior
+          </div>
+          <div class="diagram-container">
+            <svg class="diagram-svg" viewBox="0 0 200 200" id="lighting-diagram"></svg>
+          </div>
+        </div>
+
+        <div class="lights-overview">
+          <div class="section-label">
+            <span class="icon">💡</span>
+            Luces en Escena
+            <span class="light-drag-hint">Arrastra en 3D</span>
+          </div>
+          <div class="lights-list" id="lights-overview-list"></div>
+        </div>
+      </div>
+
+      <div class="lesson-nav">
+        <button class="nav-button prev" id="btn-prev" disabled>
+          <span class="arrow">←</span>
+          <span>Anterior</span>
+        </button>
+        <div class="lesson-dots" id="lesson-dots"></div>
+        <button class="nav-button next" id="btn-next">
+          <span>Siguiente</span>
+          <span class="arrow">→</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Controls Panel -->
+    <aside class="controls-panel collapsed" id="controls-panel">
+      <button class="controls-toggle" id="controls-toggle">
+        <span class="toggle-icon">⚙️</span>
+        <span class="toggle-label">Controles</span>
+      </button>
+
+      <div class="controls-content" id="controls-content">
+        <div class="drag-mode-indicator hidden" id="drag-indicator">
+          🖱️ Arrastra la luz en la escena 3D
+        </div>
+
+        <div class="control-section">
+          <div class="section-label small">Luz Seleccionada</div>
+          <div class="light-selector" id="light-selector"></div>
+        </div>
+
+        <div class="control-section" id="light-controls"></div>
+
+        <div class="control-section">
+          <div class="section-label small">Ambiente</div>
+          <div class="control-row compact">
+            <span class="control-label">Exposición</span>
+            <input type="range" class="control-slider" id="exposure" min="0.5" max="2" step="0.05" value="1.2">
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Floating Tip -->
+    <div class="floating-tip" id="floating-tip">
+      <div class="tip-content" id="tip-content">
+        <span class="tip-icon">💡</span>
+        <span class="tip-text">Arrastra para rotar la vista • Click en luz para moverla</span>
+      </div>
+      <button class="tip-close" id="tip-close">×</button>
+    </div>
+
+    <!-- Copyright Footer -->
+    <footer class="copyright-footer">
+      Desarrollado por <strong>Néstor De León</strong><br>
+      Para uso libre dentro de la<br>
+      <a href="https://pca.edu.co" target="_blank" rel="noopener">Corporación Universitaria Politécnico de la
+        Costa</a><br>
+      © 2026 UPCA
+    </footer>
+
+    <!-- Onboarding -->
+    <div class="onboarding-overlay" id="onboarding">
+      <div class="onboarding-card">
+        <div class="onboarding-logo">
+          <div class="logo-icon">💡</div>
+        </div>
+        <h2>Light Studio 3D</h2>
+        <p class="subtitle">Corporación Universitaria Politécnico de la Costa</p>
+        <p>Aprende iluminación fotográfica de forma interactiva. Visualiza en 3D cómo diferentes setups de luz afectan a
+          un retrato.</p>
+
+        <div class="onboarding-features">
+          <div class="feature">
+            <span class="feature-icon">🎨</span>
+            <span>7 Técnicas</span>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">🖱️</span>
+            <span>Interactivo</span>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">📚</span>
+            <span>Educativo</span>
+          </div>
+        </div>
+
+        <button class="cta-button" id="btn-start">
+          Comenzar
+          <span class="arrow">→</span>
+        </button>
+
+        <p class="onboarding-hint">Usa ← → para navegar entre lecciones</p>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="loading">
+      <div class="loading-spinner"></div>
+      <p>Preparando el estudio...</p>
+    </div>
+  </div>
+
+  <script type="module" src="/main.js"></script>
+</body>
+
+</html>
