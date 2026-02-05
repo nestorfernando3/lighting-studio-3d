@@ -2,9 +2,12 @@
 
 Aplicación interactiva 3D para aprender técnicas de iluminación fotográfica profesional.
 
+🌐 **[Probar Demo en Línea](https://nfdeleon.github.io/lighting-studio-3d/)**
+
 ![Light Studio 3D](https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=three.js&logoColor=white)
 ![Electron](https://img.shields.io/badge/Electron-47848F?style=for-the-badge&logo=electron&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-222222?style=for-the-badge&logo=github&logoColor=white)
 
 ## 🎯 Características
 
