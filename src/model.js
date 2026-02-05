@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 // Single high-quality realistic head model
-const MODEL_PATH = '/models/head.glb';
+const MODEL_PATH = './models/head.glb';
 
 class ModelManager {
     constructor(scene) {
