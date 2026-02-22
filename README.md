@@ -2,7 +2,7 @@
 
 Aplicación interactiva 3D para aprender técnicas de iluminación fotográfica profesional.
 
-🌐 **[Probar Demo en Línea](https://nfdeleon.github.io/lighting-studio-3d/)**
+🌐 **[Probar Demo en Línea](https://nestorfernando3.github.io/lighting-studio-3d/)**
 
 ![Light Studio 3D](https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=three.js&logoColor=white)
 ![Electron](https://img.shields.io/badge/Electron-47848F?style=for-the-badge&logo=electron&logoColor=white)
@@ -24,21 +24,24 @@ Aplicación interactiva 3D para aprender técnicas de iluminación fotográfica 
 
 ## 📥 Descargar y Ejecutar
 
-Descarga la última versión desde [**Releases**](https://github.com/NFDELEON/lighting-studio-3d/releases/latest):
+Descarga la última versión desde [**Releases**](https://github.com/nestorfernando3/lighting-studio-3d/releases/latest):
 
 ### Windows
+
 1. Descarga `Light.Studio.3D.Setup.1.0.0.exe`
 2. Ejecuta el instalador
 3. Sigue las instrucciones de instalación
 4. Abre **Light Studio 3D** desde el menú de inicio
 
 ### macOS (Intel)
+
 1. Descarga `Light.Studio.3D-1.0.0.dmg`
 2. Abre el archivo `.dmg`
 3. Arrastra la app a la carpeta **Aplicaciones**
 4. **Primera vez**: Click derecho → **Abrir** (o ejecuta en terminal: `xattr -cr /Applications/Light\ Studio\ 3D.app`)
 
 ### macOS (Apple Silicon / M1/M2/M3)
+
 1. Descarga `Light.Studio.3D-1.0.0-arm64.dmg`
 2. Sigue los mismos pasos que para Intel
 
@@ -48,7 +51,7 @@ Descarga la última versión desde [**Releases**](https://github.com/NFDELEON/li
 
 ```bash
 # Clonar repositorio
-git clone https://github.com/NFDELEON/lighting-studio-3d.git
+git clone https://github.com/nestorfernando3/lighting-studio-3d.git
 cd lighting-studio-3d
 
 # Instalar dependencias
