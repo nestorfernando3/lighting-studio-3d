@@ -1,5 +1,12 @@
 import * as THREE from 'three';
 
+const sharedGeometries = {
+    sphere: new THREE.SphereGeometry(0.15, 16, 16),
+    ring: new THREE.RingGeometry(0.22, 0.26, 32),
+    arrow: new THREE.ConeGeometry(0.05, 0.12, 4),
+    hitbox: new THREE.SphereGeometry(0.35, 12, 12)
+};
+
 export class LightingSystem {
     constructor(scene, camera, renderer) {
         this.scene = scene;
@@ -24,6 +31,7 @@ export class LightingSystem {
         this.onLightDragStart = null;
         this.onLightDrag = null;
         this.onLightDragEnd = null;
+        this.onChange = null;
 
         this.setupDragControls();
     }
@@ -202,6 +210,7 @@ export class LightingSystem {
         this.helpers = [];
         this.lightObjects.clear();
         this.helperMap.clear();
+        if (this.onChange) this.onChange();
     }
 
     createLight(config) {
@@ -255,6 +264,7 @@ export class LightingSystem {
         this.lightObjects.set(name, light);
 
         this.createLightHelper(light, type, color);
+        if (this.onChange) this.onChange();
 
         return light;
     }
@@ -263,30 +273,32 @@ export class LightingSystem {
         const helperGroup = new THREE.Group();
 
         // Main sphere (draggable)
-        const sphereGeo = new THREE.SphereGeometry(0.15, 16, 16);
         const sphereMat = new THREE.MeshBasicMaterial({
             color: color,
             transparent: true,
             opacity: 0.95
         });
-        const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+        const sphere = new THREE.Mesh(sharedGeometries.sphere, sphereMat);
         helperGroup.add(sphere);
 
+        // Invisible larger Hitbox for easier touch selection
+        const hitboxMat = new THREE.MeshBasicMaterial({ visible: false });
+        const hitbox = new THREE.Mesh(sharedGeometries.hitbox, hitboxMat);
+        helperGroup.add(hitbox);
+
         // Outer ring
-        const ringGeo = new THREE.RingGeometry(0.22, 0.26, 32);
         const ringMat = new THREE.MeshBasicMaterial({
             color: color,
             transparent: true,
             opacity: 0.5,
             side: THREE.DoubleSide
         });
-        const ring = new THREE.Mesh(ringGeo, ringMat);
+        const ring = new THREE.Mesh(sharedGeometries.ring, ringMat);
         helperGroup.add(ring);
 
         // Drag indicator arrows
         const arrowsGroup = new THREE.Group();
         const arrowMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 });
-        const arrowGeo = new THREE.ConeGeometry(0.05, 0.12, 4);
 
         const directions = [
             { pos: [0.35, 0, 0], rot: [0, 0, -Math.PI / 2] },
@@ -296,7 +308,7 @@ export class LightingSystem {
         ];
 
         directions.forEach(d => {
-            const arrow = new THREE.Mesh(arrowGeo, arrowMat);
+            const arrow = new THREE.Mesh(sharedGeometries.arrow, arrowMat);
             arrow.position.set(...d.pos);
             arrow.rotation.set(...d.rot);
             arrowsGroup.add(arrow);
@@ -331,6 +343,7 @@ export class LightingSystem {
         this.scene.add(line);
         this.helpers.push(helperGroup, line);
         this.helperMap.set(light.name, { group: helperGroup, line });
+        if (this.onChange) this.onChange();
     }
 
     updateHelpers() {
@@ -349,6 +362,7 @@ export class LightingSystem {
                 }
             }
         });
+        if (this.onChange) this.onChange();
     }
 
     // Highlight a specific light helper
@@ -369,6 +383,7 @@ export class LightingSystem {
                 helper.visible = show && helper.userData.light.visible;
             }
         });
+        if (this.onChange) this.onChange();
     }
 
     loadPreset(preset) {
@@ -376,6 +391,7 @@ export class LightingSystem {
         preset.lights.forEach(lightConfig => {
             this.createLight(lightConfig);
         });
+        if (this.onChange) this.onChange();
     }
 
     getLight(name) {
@@ -386,6 +402,7 @@ export class LightingSystem {
         const light = this.getLight(name);
         if (light) {
             light.intensity = intensity;
+            if (this.onChange) this.onChange();
         }
     }
 
@@ -407,6 +424,7 @@ export class LightingSystem {
                     }
                 }
             });
+            if (this.onChange) this.onChange();
         }
     }
 
@@ -414,7 +432,7 @@ export class LightingSystem {
         const light = this.getLight(name);
         if (light) {
             light.position[axis] = value;
-            this.updateHelpers();
+            this.updateHelpers(); // updateHelpers calls onChange
         }
     }
 
@@ -423,17 +441,19 @@ export class LightingSystem {
         if (light) {
             light.visible = enabled;
             light.userData.enabled = enabled;
-            this.updateHelpers();
+            this.updateHelpers(); // updateHelpers calls onChange
         }
     }
 
     setAmbientLight(light) {
         this.ambientLight = light;
+        if (this.onChange) this.onChange();
     }
 
     updateAmbientIntensity(intensity) {
         if (this.ambientLight) {
             this.ambientLight.intensity = intensity;
+            if (this.onChange) this.onChange();
         }
     }
 

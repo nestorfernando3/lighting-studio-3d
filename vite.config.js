@@ -1,10 +1,16 @@
 import { defineConfig } from 'vite';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
-    base: process.env.BASE_URL || './',  // Use env var for GitHub Pages, relative for Electron
+    plugins: [
+        visualizer({
+            filename: 'bundle-stats.html',
+            open: false,
+            gzipSize: true,
+            brotliSize: true
+        })
+    ],
     build: {
-        outDir: 'dist',
-        assetsDir: 'assets',
-        emptyOutDir: true
+        target: 'esnext'
     }
 });

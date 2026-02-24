@@ -57,13 +57,36 @@ const environment = createEnvironment(scene);
 const lightingSystem = new LightingSystem(scene, camera, renderer);
 lightingSystem.setAmbientLight(environment.ambientLight);
 
+let renderRequested = false;
+
+function render() {
+    renderRequested = false;
+    controls.update();
+    lightingSystem.updateHelpers();
+    renderer.render(scene, camera);
+}
+
+function requestRenderIfNotRequested() {
+    if (!renderRequested) {
+        renderRequested = true;
+        requestAnimationFrame(render);
+    }
+}
+
+// Expose globally for async model loading and UI updates
+window.requestRender = requestRenderIfNotRequested;
+
+controls.addEventListener('change', requestRenderIfNotRequested);
+
 // Disable orbit controls when dragging lights
 lightingSystem.onLightDragStart = (lightName) => {
     controls.enabled = false;
+    requestRenderIfNotRequested();
 };
 
 lightingSystem.onLightDragEnd = (lightName) => {
     controls.enabled = true;
+    requestRenderIfNotRequested();
 };
 
 // UI - pass lighting system for drag updates
@@ -72,24 +95,50 @@ const ui = new UI(lightingSystem, scene, renderer);
 // Connect drag events to UI updates
 lightingSystem.onLightDrag = (lightName, position) => {
     ui.onLightDragged(lightName, position);
+    requestRenderIfNotRequested();
 };
 
-// Animation loop
-function animate() {
-    requestAnimationFrame(animate);
-    controls.update();
-    lightingSystem.updateHelpers();
-    renderer.render(scene, camera);
-}
+// Wire up light system changes to trigger render
+lightingSystem.onChange = requestRenderIfNotRequested;
 
 // Resize handler
 window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
+    const aspect = window.innerWidth / window.innerHeight;
+    camera.aspect = aspect;
+
+    // Adjust FOV for portrait mobile screens
+    if (aspect < 1) {
+        camera.fov = 40 + (1 - aspect) * 20; // Increase FOV as it gets narrower
+    } else {
+        camera.fov = 40;
+    }
+
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    requestRenderIfNotRequested();
 });
 
-animate();
+// Expose renderer change to UI exposure
+const exposureInput = document.getElementById('exposure');
+if (exposureInput) {
+    exposureInput.addEventListener('input', (e) => {
+        renderer.toneMappingExposure = parseFloat(e.target.value);
+        requestRenderIfNotRequested();
+    });
+}
+
+// PWA Service Worker Registration
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(registration => {
+            console.log('SW registered: ', registration.scope);
+        }).catch(error => {
+            console.log('SW registration failed: ', error);
+        });
+    });
+}
+
+requestRenderIfNotRequested();
 
 // Debug exports
 window.scene = scene;

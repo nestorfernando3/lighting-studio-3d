@@ -13,6 +13,7 @@
   <title>Light Studio 3D - UPCA</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="manifest" href="/manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@350;400;450;500;550;600;700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
@@ -37,8 +38,8 @@
       </div>
 
       <div class="header-right">
-        <button class="icon-button" id="btn-help" title="Ayuda">?</button>
-        <button class="icon-button" id="btn-screenshot" title="Captura de pantalla">📷</button>
+        <button class="icon-button" id="btn-help" title="Ayuda" aria-label="Mostrar ayuda">?</button>
+        <button class="icon-button" id="btn-screenshot" title="Captura de pantalla" aria-label="Tomar captura de pantalla">📷</button>
       </div>
     </header>
 
@@ -100,12 +101,12 @@
       </div>
 
       <div class="lesson-nav">
-        <button class="nav-button prev" id="btn-prev" disabled>
+        <button class="nav-button prev" id="btn-prev" aria-label="Lección anterior" disabled>
           <span class="arrow">←</span>
           <span>Anterior</span>
         </button>
         <div class="lesson-dots" id="lesson-dots"></div>
-        <button class="nav-button next" id="btn-next">
+        <button class="nav-button next" id="btn-next" aria-label="Siguiente lección">
           <span>Siguiente</span>
           <span class="arrow">→</span>
         </button>
@@ -114,7 +115,7 @@
 
     <!-- Controls Panel -->
     <aside class="controls-panel collapsed" id="controls-panel">
-      <button class="controls-toggle" id="controls-toggle">
+      <button class="controls-toggle" id="controls-toggle" aria-expanded="false" aria-controls="controls-content">
         <span class="toggle-icon">⚙️</span>
         <span class="toggle-label">Controles</span>
       </button>
@@ -134,8 +135,8 @@
         <div class="control-section">
           <div class="section-label small">Ambiente</div>
           <div class="control-row compact">
-            <span class="control-label">Exposición</span>
-            <input type="range" class="control-slider" id="exposure" min="0.5" max="2" step="0.05" value="1.2">
+            <span class="control-label" id="exposure-label">Exposición</span>
+            <input type="range" class="control-slider" id="exposure" min="0.5" max="2" step="0.05" value="1.2" aria-labelledby="exposure-label">
           </div>
         </div>
       </div>
@@ -144,10 +145,10 @@
     <!-- Floating Tip -->
     <div class="floating-tip" id="floating-tip">
       <div class="tip-content" id="tip-content">
-        <span class="tip-icon">💡</span>
+        <span class="tip-icon" aria-hidden="true">💡</span>
         <span class="tip-text">Arrastra para rotar la vista • Click en luz para moverla</span>
       </div>
-      <button class="tip-close" id="tip-close">×</button>
+      <button class="tip-close" id="tip-close" aria-label="Cerrar tip">×</button>
     </div>
 
     <!-- Copyright Footer -->
@@ -185,9 +186,9 @@
           </div>
         </div>
 
-        <button class="cta-button" id="btn-start">
+        <button class="cta-button" id="btn-start" aria-label="Comenzar tutorial">
           Comenzar
-          <span class="arrow">→</span>
+          <span class="arrow" aria-hidden="true">→</span>
         </button>
 
         <p class="onboarding-hint">Usa ← → para navegar entre lecciones</p>

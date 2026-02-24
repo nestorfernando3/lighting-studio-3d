@@ -102,6 +102,7 @@ class ModelManager {
                 if (loading) loading.classList.add('hidden');
 
                 console.log('Realistic head model loaded successfully');
+                if (window.requestRender) window.requestRender();
             },
             (progress) => {
                 const percent = (progress.loaded / progress.total * 100).toFixed(0);
