@@ -1,13 +1,14 @@
 import { getPresetNames, getPreset } from './presets.js';
-import { switchModelForLighting } from './model.js';
+import { switchModelForLighting, BACKGROUND_PRESETS, setBackdropColor } from './model.js';
 import { setupOnboarding } from './onboarding.js';
 import { renderDiagram } from './diagram.js';
 
 export class UI {
-    constructor(lightingSystem, scene, renderer) {
+    constructor(lightingSystem, scene, renderer, environment) {
         this.lightingSystem = lightingSystem;
         this.scene = scene;
         this.renderer = renderer;
+        this.environment = environment;
         this.currentIndex = 0;
         this.presetNames = getPresetNames();
         this.selectedLightName = null;
@@ -80,6 +81,13 @@ export class UI {
         this.selectedLightName = null;
         this.updateLightSelector(this.currentPreset);
         document.getElementById('controls-panel')?.classList.add('collapsed');
+
+        // Toggle sandbox toolbar
+        const toolbar = document.getElementById('sandbox-toolbar');
+        if (toolbar) {
+            toolbar.classList.toggle('hidden', !this.currentPreset.isSandbox);
+        }
+        this.setupSandboxButtons();
     }
 
     updateProgress(index) {
@@ -131,6 +139,7 @@ export class UI {
         if (!container) return;
 
         container.innerHTML = '';
+        const isSandbox = preset.isSandbox;
 
         preset.lights.forEach((light, index) => {
             const item = document.createElement('div');
@@ -143,9 +152,22 @@ export class UI {
           <div class="light-item-name">${light.name}</div>
           <div class="light-item-role">${light.role}</div>
         </div>
+        ${isSandbox ? '<button class="light-delete-btn" title="Eliminar luz" aria-label="Eliminar luz">🗑️</button>' : ''}
       `;
 
-            item.addEventListener('click', () => this.selectLight(light));
+            item.addEventListener('click', (e) => {
+                if (e.target.closest('.light-delete-btn')) return;
+                this.selectLight(light);
+            });
+
+            // Delete button in sandbox mode
+            if (isSandbox) {
+                item.querySelector('.light-delete-btn')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.removeSandboxLight(light.name);
+                });
+            }
+
             container.appendChild(item);
         });
     }
@@ -257,6 +279,11 @@ export class UI {
         <input type="range" class="control-slider" id="ctrl-z" min="-5" max="5" step="0.1" value="${light.position.z}">
         <span class="control-value" id="val-z">${light.position.z.toFixed(1)}</span>
       </div>
+      <div class="control-row reset-row">
+        <button class="reset-light-btn" id="btn-reset-light" title="Resetear posición original">
+          ⟳ Resetear Posición
+        </button>
+      </div>
     `;
 
         this.bindControlEvents(light.name);
@@ -296,6 +323,17 @@ export class UI {
             const lightConfig = this.currentPreset.lights.find(l => l.name === lightName);
             if (lightConfig) lightConfig.color = e.target.value;
         });
+
+        // Reset position button
+        document.getElementById('btn-reset-light')?.addEventListener('click', () => {
+            this.lightingSystem.resetLightPosition(lightName);
+            // Refresh controls to show updated values
+            const light = this.currentPreset.lights.find(l => l.name === lightName);
+            if (light) {
+                this.updateLightControls(light);
+                this.updateDiagram(this.currentPreset);
+            }
+        });
     }
 
     // ========== General Controls ==========
@@ -315,6 +353,84 @@ export class UI {
         document.getElementById('btn-help')?.addEventListener('click', () => {
             document.getElementById('onboarding')?.classList.remove('hidden');
         });
+
+        // Background color swatches
+        this.setupBackgroundControls();
+    }
+
+    setupBackgroundControls() {
+        const container = document.getElementById('bg-swatches');
+        if (!container) return;
+
+        BACKGROUND_PRESETS.forEach((preset) => {
+            const btn = document.createElement('button');
+            btn.className = 'bg-swatch';
+            btn.style.backgroundColor = preset.color;
+            btn.title = preset.name;
+            btn.setAttribute('aria-label', `Fondo ${preset.name}`);
+            btn.addEventListener('click', () => {
+                setBackdropColor(this.scene, this.environment, preset.color);
+                // Update custom color input to match
+                const customInput = document.getElementById('bg-custom-color');
+                if (customInput) customInput.value = preset.color;
+                // Update active state
+                container.querySelectorAll('.bg-swatch').forEach(s => s.classList.remove('active'));
+                btn.classList.add('active');
+            });
+            container.appendChild(btn);
+        });
+
+        // Custom color picker
+        document.getElementById('bg-custom-color')?.addEventListener('input', (e) => {
+            setBackdropColor(this.scene, this.environment, e.target.value);
+            container.querySelectorAll('.bg-swatch').forEach(s => s.classList.remove('active'));
+        });
+    }
+
+    // ========== Sandbox / Free Illumination Mode ==========
+    setupSandboxButtons() {
+        if (!this.currentPreset?.isSandbox) return;
+
+        document.querySelectorAll('.sandbox-add-btn').forEach(btn => {
+            // Clone to remove old listeners
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+
+            newBtn.addEventListener('click', () => {
+                const lightType = newBtn.dataset.type;
+                this.addSandboxLight(lightType);
+            });
+        });
+    }
+
+    addSandboxLight(lightType) {
+        const newConfig = this.lightingSystem.addFreeLight(lightType);
+        // Add to preset data for diagram/UI sync
+        this.currentPreset.lights.push(newConfig);
+        // Refresh UI
+        this.updateLightsOverview(this.currentPreset);
+        this.updateDiagram(this.currentPreset);
+        this.updateLightSelector(this.currentPreset, newConfig.name);
+        // Select the new light
+        this.selectLight(newConfig);
+    }
+
+    removeSandboxLight(name) {
+        const removed = this.lightingSystem.removeLight(name);
+        if (removed) {
+            // Remove from preset data
+            this.currentPreset.lights = this.currentPreset.lights.filter(l => l.name !== name);
+            // Clear selection if this was selected
+            if (this.selectedLightName === name) {
+                this.selectedLightName = null;
+                const container = document.getElementById('light-controls');
+                if (container) container.innerHTML = '';
+            }
+            // Refresh UI
+            this.updateLightsOverview(this.currentPreset);
+            this.updateDiagram(this.currentPreset);
+            this.updateLightSelector(this.currentPreset, this.selectedLightName);
+        }
     }
 
     takeScreenshot() {
@@ -346,7 +462,7 @@ export class UI {
                 case 'r': case 'R':
                     window.controls?.reset();
                     break;
-                case '1': case '2': case '3': case '4': case '5': case '6': case '7':
+                case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8':
                     const idx = parseInt(e.key) - 1;
                     if (idx < this.presetNames.length) this.loadLesson(idx);
                     break;

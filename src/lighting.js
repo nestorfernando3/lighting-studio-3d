@@ -4,8 +4,15 @@ const sharedGeometries = {
     sphere: new THREE.SphereGeometry(0.15, 16, 16),
     ring: new THREE.RingGeometry(0.22, 0.26, 32),
     arrow: new THREE.ConeGeometry(0.05, 0.12, 4),
-    hitbox: new THREE.SphereGeometry(0.35, 12, 12)
+    hitbox: new THREE.SphereGeometry(0.5, 12, 12) // Larger hitbox for easier touch selection
 };
+
+// Max drag constraints
+const DRAG_CLAMP_XZ = 4;
+const DRAG_CLAMP_Y_MIN = 0.5;
+const DRAG_CLAMP_Y_MAX = 5.0;
+const DRAG_MAX_DISTANCE = 5; // Max distance from center before ignoring drag
+const DRAG_TIMEOUT_MS = 10000; // Auto-cancel drag after 10 seconds
 
 export class LightingSystem {
     constructor(scene, camera, renderer) {
@@ -111,6 +118,9 @@ export class LightingSystem {
         this.isDragging = true;
         this.draggedLight = light;
 
+        // Save original position for rollback if drag goes wrong
+        this._dragOriginalPosition = light.position.clone();
+
         // Create a plane at the light's height facing the camera
         const cameraDirection = new THREE.Vector3();
         this.camera.getWorldDirection(cameraDirection);
@@ -124,6 +134,14 @@ export class LightingSystem {
 
         // Add visual feedback
         document.body.classList.add('dragging-light');
+
+        // Safety timeout — auto-cancel drag after 10 seconds
+        this._dragTimeout = setTimeout(() => {
+            if (this.isDragging) {
+                console.warn('Drag timeout — auto-cancelling');
+                this.onMouseUp();
+            }
+        }, DRAG_TIMEOUT_MS);
 
         if (this.onLightDragStart) {
             this.onLightDragStart(light.name);
@@ -161,9 +179,18 @@ export class LightingSystem {
         this.raycaster.setFromCamera(this.mouse, this.camera);
 
         if (this.raycaster.ray.intersectPlane(this.dragPlane, this.intersectionPoint)) {
-            // Apply position with constraints
-            const newX = THREE.MathUtils.clamp(this.intersectionPoint.x, -6, 6);
-            const newZ = THREE.MathUtils.clamp(this.intersectionPoint.z, -6, 6);
+            const ix = this.intersectionPoint.x;
+            const iz = this.intersectionPoint.z;
+
+            // Guard against NaN / Infinity from bad intersections
+            if (!isFinite(ix) || !isFinite(iz)) return;
+
+            // Ignore if intersection is too far from center (prevents fly-away)
+            if (Math.sqrt(ix * ix + iz * iz) > DRAG_MAX_DISTANCE) return;
+
+            // Apply position with tighter constraints
+            const newX = THREE.MathUtils.clamp(ix, -DRAG_CLAMP_XZ, DRAG_CLAMP_XZ);
+            const newZ = THREE.MathUtils.clamp(iz, -DRAG_CLAMP_XZ, DRAG_CLAMP_XZ);
 
             this.draggedLight.position.x = newX;
             this.draggedLight.position.z = newZ;
@@ -182,6 +209,12 @@ export class LightingSystem {
 
     onMouseUp() {
         if (this.isDragging) {
+            // Clear safety timeout
+            if (this._dragTimeout) {
+                clearTimeout(this._dragTimeout);
+                this._dragTimeout = null;
+            }
+
             document.body.classList.remove('dragging-light');
 
             if (this.onLightDragEnd && this.draggedLight) {
@@ -190,12 +223,84 @@ export class LightingSystem {
 
             this.isDragging = false;
             this.draggedLight = null;
+            this._dragOriginalPosition = null;
         }
     }
 
     // Check if we're dragging (to disable orbit controls)
     isDraggingLight() {
         return this.isDragging;
+    }
+
+    // Reset a light to its original preset position
+    resetLightPosition(name) {
+        const light = this.getLight(name);
+        if (light && light.userData.config) {
+            const pos = light.userData.config.position;
+            light.position.set(pos.x, pos.y, pos.z);
+            this.updateHelpers();
+            if (this.onLightDrag) {
+                this.onLightDrag(name, { x: pos.x, y: pos.y, z: pos.z });
+            }
+        }
+    }
+
+    // Free illumination mode: create a new light of any type
+    _freeLightCounter = 0;
+    addFreeLight(lightType = 'spot') {
+        this._freeLightCounter++;
+        const typeLabels = {
+            spot: 'Spot',
+            point: 'Point',
+            directional: 'Directional'
+        };
+        const typeConfigs = {
+            spot: { type: 'key', intensity: 2.5, color: '#ffffff', position: { x: 1.5, y: 3.0, z: 1.5 } },
+            point: { type: 'fill', intensity: 2.0, color: '#ffeedd', position: { x: -1.5, y: 2.5, z: 1.0 } },
+            directional: { type: 'rim', intensity: 2.0, color: '#e0e8ff', position: { x: 0, y: 3.5, z: -2.0 } }
+        };
+        const cfg = typeConfigs[lightType] || typeConfigs.spot;
+        const name = `${typeLabels[lightType] || 'Luz'} ${this._freeLightCounter}`;
+
+        const config = {
+            name,
+            type: cfg.type,
+            position: { ...cfg.position },
+            intensity: cfg.intensity,
+            color: cfg.color,
+            role: `${typeLabels[lightType] || 'Luz'} libre`,
+            freeLight: true,
+            freeLightType: lightType
+        };
+
+        this.createLight(config);
+        return config;
+    }
+
+    // Remove a specific light by name
+    removeLight(name) {
+        const light = this.lightObjects.get(name);
+        if (!light) return false;
+
+        // Remove light from scene
+        if (light.target) this.scene.remove(light.target);
+        this.scene.remove(light);
+
+        // Remove helpers
+        const helperData = this.helperMap.get(name);
+        if (helperData) {
+            this.scene.remove(helperData.group);
+            this.scene.remove(helperData.line);
+            this.helpers = this.helpers.filter(h =>
+                h !== helperData.group && h !== helperData.line
+            );
+            this.helperMap.delete(name);
+        }
+
+        this.lights = this.lights.filter(l => l !== light);
+        this.lightObjects.delete(name);
+        if (this.onChange) this.onChange();
+        return true;
     }
 
     clearLights() {

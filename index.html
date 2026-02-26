@@ -39,7 +39,8 @@
 
       <div class="header-right">
         <button class="icon-button" id="btn-help" title="Ayuda" aria-label="Mostrar ayuda">?</button>
-        <button class="icon-button" id="btn-screenshot" title="Captura de pantalla" aria-label="Tomar captura de pantalla">📷</button>
+        <button class="icon-button" id="btn-screenshot" title="Captura de pantalla"
+          aria-label="Tomar captura de pantalla">📷</button>
       </div>
     </header>
 
@@ -97,6 +98,20 @@
             <span class="light-drag-hint">Arrastra en 3D</span>
           </div>
           <div class="lights-list" id="lights-overview-list"></div>
+          <div class="sandbox-toolbar hidden" id="sandbox-toolbar">
+            <div class="section-label small">➕ Agregar Luz</div>
+            <div class="sandbox-add-buttons">
+              <button class="sandbox-add-btn" data-type="spot" title="Foco concentrado">
+                <span class="add-icon">🔦</span> Spot
+              </button>
+              <button class="sandbox-add-btn" data-type="point" title="Luz puntual omnidireccional">
+                <span class="add-icon">💡</span> Point
+              </button>
+              <button class="sandbox-add-btn" data-type="directional" title="Luz direccional tipo sol">
+                <span class="add-icon">☀️</span> Directional
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -136,7 +151,17 @@
           <div class="section-label small">Ambiente</div>
           <div class="control-row compact">
             <span class="control-label" id="exposure-label">Exposición</span>
-            <input type="range" class="control-slider" id="exposure" min="0.5" max="2" step="0.05" value="1.2" aria-labelledby="exposure-label">
+            <input type="range" class="control-slider" id="exposure" min="0.5" max="2" step="0.05" value="1.2"
+              aria-labelledby="exposure-label">
+          </div>
+        </div>
+
+        <div class="control-section">
+          <div class="section-label small">🎨 Fondo</div>
+          <div class="bg-swatches" id="bg-swatches"></div>
+          <div class="control-row compact">
+            <span class="control-label">Personalizado</span>
+            <input type="color" class="control-color" id="bg-custom-color" value="#080810">
           </div>
         </div>
       </div>
@@ -174,7 +199,7 @@
         <div class="onboarding-features">
           <div class="feature">
             <span class="feature-icon">🎨</span>
-            <span>7 Técnicas</span>
+            <span>8 Técnicas</span>
           </div>
           <div class="feature">
             <span class="feature-icon">🖱️</span>

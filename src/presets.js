@@ -289,6 +289,30 @@ const presets = {
                 role: 'Resalta el contorno del lado cercano'
             }
         ]
+    },
+
+    sandbox: {
+        id: 'sandbox',
+        name: 'Modo Libre',
+        category: 'Sandbox',
+        difficulty: 3,
+        isSandbox: true,
+        goal: 'Experimenta libremente. Agrega, elimina y modifica cualquier tipo de luz para crear tu propio setup de iluminación.',
+        whatToObserve: [
+            'Crea tu propia configuración de iluminación',
+            'Prueba diferentes tipos de luces: Spot, Point, Directional',
+            'Experimenta con posiciones, colores e intensidades'
+        ],
+        lights: [
+            {
+                name: 'Luz Ambiente',
+                type: 'fill',
+                position: { x: 0, y: 3.0, z: 2.0 },
+                intensity: 1.0,
+                color: '#ffffff',
+                role: 'Luz base para comenzar. ¡Agrega más luces!'
+            }
+        ]
     }
 };
 

@@ -168,3 +168,27 @@ export function createEnvironment(scene) {
 
     return { ground, backdrop, ambientLight };
 }
+
+// Background color presets for color testing
+export const BACKGROUND_PRESETS = [
+    { name: 'Negro', color: '#080810' },
+    { name: 'Gris 18%', color: '#737373' },
+    { name: 'Blanco', color: '#e0e0e0' },
+    { name: 'Azul', color: '#1a3a5c' },
+    { name: 'Verde', color: '#1a4a2a' },
+    { name: 'Rojo', color: '#5c1a1a' }
+];
+
+// Change backdrop and scene background color
+export function setBackdropColor(scene, environment, colorHex) {
+    const color = new THREE.Color(colorHex);
+    scene.background = color;
+    scene.fog = new THREE.FogExp2(color, 0.04);
+    if (environment.backdrop) {
+        environment.backdrop.material.color.set(color);
+    }
+    if (environment.ground) {
+        environment.ground.material.color.set(color);
+    }
+    if (window.requestRender) window.requestRender();
+}

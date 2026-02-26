@@ -90,7 +90,7 @@ lightingSystem.onLightDragEnd = (lightName) => {
 };
 
 // UI - pass lighting system for drag updates
-const ui = new UI(lightingSystem, scene, renderer);
+const ui = new UI(lightingSystem, scene, renderer, environment);
 
 // Connect drag events to UI updates
 lightingSystem.onLightDrag = (lightName, position) => {
