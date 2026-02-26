@@ -11,6 +11,8 @@ export const MODEL_REGISTRY = [
         scale: 0.26,
         positionY: 1.6,
         skinColor: 0xd4a574,
+        hideBase: false,        // show the generated bust/neck cylinder
+        preserveMaterial: false, // override with skinColor material
         description: 'Modelo masculino realista'
     },
     {
@@ -21,6 +23,8 @@ export const MODEL_REGISTRY = [
         scale: 0.07,
         positionY: 0.25,
         skinColor: 0xf5c5a3,
+        hideBase: true,          // hide generated cylinder (model has its own base)
+        preserveMaterial: true,  // keep original GLB textures/colors
         description: 'Modelo femenino realista'
     }
 ];
@@ -33,6 +37,8 @@ class ModelManager {
         this.currentHead = null;
         this.currentModelId = null;
         this.isLoading = false;
+        this.baseDisk = null;
+        this.bustCylinder = null;
 
         this.scene.add(this.modelGroup);
         this.createBase();
@@ -45,27 +51,27 @@ class ModelManager {
             roughness: 0.9,
             metalness: 0.1
         });
-        const base = new THREE.Mesh(
+        this.baseDisk = new THREE.Mesh(
             new THREE.CylinderGeometry(0.6, 0.7, 0.25, 32),
             baseMat
         );
-        base.position.y = 0.125;
-        base.receiveShadow = true;
-        this.modelGroup.add(base);
+        this.baseDisk.position.y = 0.125;
+        this.baseDisk.receiveShadow = true;
+        this.modelGroup.add(this.baseDisk);
 
         const bustMat = new THREE.MeshStandardMaterial({
             color: 0x2c3e50,
             roughness: 0.7,
             metalness: 0.1
         });
-        const bust = new THREE.Mesh(
+        this.bustCylinder = new THREE.Mesh(
             new THREE.CylinderGeometry(0.35, 0.5, 0.8, 24),
             bustMat
         );
-        bust.position.y = 0.65;
-        bust.castShadow = true;
-        bust.receiveShadow = true;
-        this.modelGroup.add(bust);
+        this.bustCylinder.position.y = 0.65;
+        this.bustCylinder.castShadow = true;
+        this.bustCylinder.receiveShadow = true;
+        this.modelGroup.add(this.bustCylinder);
 
         this.modelGroup.rotation.y = Math.PI / 16;
     }
@@ -77,14 +83,17 @@ class ModelManager {
         this.isLoading = true;
         this.currentModelId = modelId;
 
-        // Show loading indicator
+        // Show/hide generated base parts based on model config
+        if (this.bustCylinder) this.bustCylinder.visible = !config.hideBase;
+        if (this.baseDisk) this.baseDisk.visible = !config.hideBase;
+
         const loading = document.getElementById('loading');
         if (loading) loading.classList.remove('hidden');
 
-        // Remove old head
+        // Remove old head and dispose its resources
         if (this.currentHead) {
             this.modelGroup.remove(this.currentHead);
-            this.currentHead?.traverse(child => {
+            this.currentHead.traverse(child => {
                 child.geometry?.dispose();
                 if (child.material) {
                     (Array.isArray(child.material) ? child.material : [child.material])
@@ -119,15 +128,20 @@ class ModelManager {
                     if (child.isMesh) {
                         child.castShadow = true;
                         child.receiveShadow = true;
-                        const orig = child.material;
-                        child.material = new THREE.MeshStandardMaterial({
-                            color: config.skinColor,
-                            roughness: 0.5,
-                            metalness: 0.0,
-                            map: orig?.map || null,
-                            normalMap: orig?.normalMap || null,
-                            normalScale: new THREE.Vector2(0.8, 0.8)
-                        });
+
+                        if (!config.preserveMaterial) {
+                            // Override with a consistent skin material
+                            const orig = child.material;
+                            child.material = new THREE.MeshStandardMaterial({
+                                color: config.skinColor,
+                                roughness: 0.5,
+                                metalness: 0.0,
+                                map: orig?.map || null,
+                                normalMap: orig?.normalMap || null,
+                                normalScale: new THREE.Vector2(0.8, 0.8)
+                            });
+                        }
+                        // else: keep original GLB materials as-is
                     }
                 });
 
@@ -153,6 +167,7 @@ class ModelManager {
         return this.modelGroup;
     }
 }
+
 
 // Singleton
 let modelManager = null;
