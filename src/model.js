@@ -18,8 +18,8 @@ export const MODEL_REGISTRY = [
         name: 'Retrato Femenino',
         icon: '👩',
         path: './models/female_head.glb',
-        scale: 0.26,
-        positionY: 1.6,
+        scale: 0.09,
+        positionY: 1.55,
         skinColor: 0xf5c5a3,
         description: 'Modelo femenino realista'
     }
