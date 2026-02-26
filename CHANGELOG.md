@@ -4,6 +4,25 @@ Todos los cambios notables de este proyecto serán documentados aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
+## [1.2.0] - 2026-02-26
+
+### ✨ Agregado
+
+- **👤 Selector de Modelos 3D** — Cambia entre modelo masculino y femenino en el panel de controles sin recargar la aplicación. Los materiales y sombras se aplican automáticamente al cambiar
+- **🟥 Softbox / RectAreaLight** — Nueva luz de panel rectangular en el Modo Libre, simula un softbox fotográfico real con controles de Ancho y Alto
+- **⧉ Duplicar Luz** — En el Modo Libre, botón para duplicar cualquier luz existente con propiedades idénticas
+- **🔦 Control de ángulo de cono (SpotLight)** — Slider "Cono °" (5°–90°) para luces Spot en modo sandbox
+
+### 🔧 Técnico
+
+- `MODEL_REGISTRY` centralizado en `model.js`: añadir nuevos modelos solo requiere un objeto en el array
+- `switchModel(id)` reemplaza el modelo activo con limpieza correcta de geometrías y materiales en memoria
+- `RectAreaLightUniformsLib.init()` y `RectAreaLightHelper` importados dinámicamente desde Three.js
+- `duplicateLight(name)` en `LightingSystem` clona la configuración completa con offset de posición
+- Bundle aumentó de 645KB a 899KB (gzip: 272KB) por los módulos Three.js de `RectAreaLight`
+
+---
+
 ## [1.1.0] - 2026-02-26
 
 ### ✨ Agregado

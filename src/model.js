@@ -1,8 +1,29 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-// Single high-quality realistic head model
-const MODEL_PATH = './models/head.glb';
+// ====== Model registry — add more GLB models here ======
+export const MODEL_REGISTRY = [
+    {
+        id: 'male',
+        name: 'Retrato Masculino',
+        icon: '👨',
+        path: './models/head.glb',
+        scale: 0.26,
+        positionY: 1.6,
+        skinColor: 0xd4a574,
+        description: 'Modelo masculino realista'
+    },
+    {
+        id: 'female',
+        name: 'Retrato Femenino',
+        icon: '👩',
+        path: './models/female_head.glb',
+        scale: 0.26,
+        positionY: 1.6,
+        skinColor: 0xf5c5a3,
+        description: 'Modelo femenino realista'
+    }
+];
 
 class ModelManager {
     constructor(scene) {
@@ -10,20 +31,20 @@ class ModelManager {
         this.loader = new GLTFLoader();
         this.modelGroup = new THREE.Group();
         this.currentHead = null;
+        this.currentModelId = null;
+        this.isLoading = false;
 
         this.scene.add(this.modelGroup);
         this.createBase();
-        this.loadRealisticHead();
+        this.loadModel('male');
     }
 
     createBase() {
-        // Base/pedestal
         const baseMat = new THREE.MeshStandardMaterial({
             color: 0x1a1a2e,
             roughness: 0.9,
             metalness: 0.1
         });
-
         const base = new THREE.Mesh(
             new THREE.CylinderGeometry(0.6, 0.7, 0.25, 32),
             baseMat
@@ -32,13 +53,11 @@ class ModelManager {
         base.receiveShadow = true;
         this.modelGroup.add(base);
 
-        // Neck/bust support
         const bustMat = new THREE.MeshStandardMaterial({
             color: 0x2c3e50,
             roughness: 0.7,
             metalness: 0.1
         });
-
         const bust = new THREE.Mesh(
             new THREE.CylinderGeometry(0.35, 0.5, 0.8, 24),
             bustMat
@@ -48,47 +67,65 @@ class ModelManager {
         bust.receiveShadow = true;
         this.modelGroup.add(bust);
 
-        // Initial rotation
         this.modelGroup.rotation.y = Math.PI / 16;
     }
 
-    loadRealisticHead() {
-        // Create placeholder
+    loadModel(modelId) {
+        const config = MODEL_REGISTRY.find(m => m.id === modelId);
+        if (!config || this.isLoading || modelId === this.currentModelId) return;
+
+        this.isLoading = true;
+        this.currentModelId = modelId;
+
+        // Show loading indicator
+        const loading = document.getElementById('loading');
+        if (loading) loading.classList.remove('hidden');
+
+        // Remove old head
+        if (this.currentHead) {
+            this.modelGroup.remove(this.currentHead);
+            this.currentHead?.traverse(child => {
+                child.geometry?.dispose();
+                if (child.material) {
+                    (Array.isArray(child.material) ? child.material : [child.material])
+                        .forEach(m => m.dispose());
+                }
+            });
+            this.currentHead = null;
+        }
+
+        // Placeholder wireframe while loading
         const placeholder = new THREE.Mesh(
             new THREE.SphereGeometry(0.4, 16, 16),
             new THREE.MeshStandardMaterial({ color: 0x444455, wireframe: true })
         );
-        placeholder.position.y = 1.6;
+        placeholder.position.y = config.positionY;
         placeholder.name = 'placeholder';
         this.modelGroup.add(placeholder);
 
         this.loader.load(
-            MODEL_PATH,
+            config.path,
             (gltf) => {
                 const head = gltf.scene;
 
-                // Remove placeholder
                 const ph = this.modelGroup.getObjectByName('placeholder');
                 if (ph) this.modelGroup.remove(ph);
 
-                // Scale and position
-                head.scale.set(0.26, 0.26, 0.26);
-                head.position.set(0, 1.6, 0);
+                head.scale.set(config.scale, config.scale, config.scale);
+                head.position.set(0, config.positionY, 0);
                 head.rotation.y = 0;
 
-                // Apply enhanced skin material
                 head.traverse((child) => {
                     if (child.isMesh) {
                         child.castShadow = true;
                         child.receiveShadow = true;
-
-                        const originalMat = child.material;
+                        const orig = child.material;
                         child.material = new THREE.MeshStandardMaterial({
-                            color: 0xf5d0b5,
+                            color: config.skinColor,
                             roughness: 0.5,
                             metalness: 0.0,
-                            map: originalMat?.map || null,
-                            normalMap: originalMat?.normalMap || null,
+                            map: orig?.map || null,
+                            normalMap: orig?.normalMap || null,
                             normalScale: new THREE.Vector2(0.8, 0.8)
                         });
                     }
@@ -96,20 +133,18 @@ class ModelManager {
 
                 this.modelGroup.add(head);
                 this.currentHead = head;
+                this.isLoading = false;
 
-                // Hide loading
-                const loading = document.getElementById('loading');
                 if (loading) loading.classList.add('hidden');
-
-                console.log('Realistic head model loaded successfully');
                 if (window.requestRender) window.requestRender();
             },
-            (progress) => {
-                const percent = (progress.loaded / progress.total * 100).toFixed(0);
-                console.log(`Loading head model: ${percent}%`);
-            },
+            null,
             (error) => {
-                console.error('Error loading head model:', error);
+                console.error('Error loading model:', error);
+                this.isLoading = false;
+                const ph = this.modelGroup.getObjectByName('placeholder');
+                if (ph) this.modelGroup.remove(ph);
+                if (loading) loading.classList.add('hidden');
             }
         );
     }
@@ -119,7 +154,7 @@ class ModelManager {
     }
 }
 
-// Singleton instance
+// Singleton
 let modelManager = null;
 
 export function createPortraitModel(scene) {
@@ -131,10 +166,15 @@ export function getModelManager() {
     return modelManager;
 }
 
-// Stub function for compatibility - no model switching needed
-export function switchModelForLighting(lightingId) {
+export function switchModel(modelId) {
+    if (modelManager) modelManager.loadModel(modelId);
+}
+
+// kept for preset compatibility
+export function switchModelForLighting() {
     return Promise.resolve();
 }
+
 
 export function createEnvironment(scene) {
     // Ground

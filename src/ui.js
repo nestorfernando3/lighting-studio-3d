@@ -1,5 +1,5 @@
 import { getPresetNames, getPreset } from './presets.js';
-import { switchModelForLighting, BACKGROUND_PRESETS, setBackdropColor } from './model.js';
+import { switchModelForLighting, switchModel, MODEL_REGISTRY, BACKGROUND_PRESETS, setBackdropColor } from './model.js';
 import { setupOnboarding } from './onboarding.js';
 import { renderDiagram } from './diagram.js';
 
@@ -20,10 +20,11 @@ export class UI {
     init() {
         this.createLessonDots();
         this.setupNavigation();
-        this.setupControls();
         this.setupOnboarding();
+        this.setupControls();
+        this.loadLesson(0);
         this.setupKeyboardShortcuts();
-        this.hideLoading();
+        this.setupModelSelector();
     }
 
     // ========== Onboarding ==========
@@ -279,10 +280,28 @@ export class UI {
         <input type="range" class="control-slider" id="ctrl-z" min="-5" max="5" step="0.1" value="${light.position.z}">
         <span class="control-value" id="val-z">${light.position.z.toFixed(1)}</span>
       </div>
+      ${light.type === 'key' && light.freeLight ? `
+      <div class="control-row">
+        <span class="control-label">Cono °</span>
+        <input type="range" class="control-slider" id="ctrl-cone" min="5" max="90" step="1" value="45">
+        <span class="control-value" id="val-cone">45</span>
+      </div>` : ''}
+      ${light.type === 'rect' ? `
+      <div class="control-row">
+        <span class="control-label">Ancho</span>
+        <input type="range" class="control-slider" id="ctrl-width" min="0.5" max="5" step="0.1" value="2">
+        <span class="control-value" id="val-width">2.0</span>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Alto</span>
+        <input type="range" class="control-slider" id="ctrl-height" min="0.5" max="4" step="0.1" value="1.5">
+        <span class="control-value" id="val-height">1.5</span>
+      </div>` : ''}
       <div class="control-row reset-row">
         <button class="reset-light-btn" id="btn-reset-light" title="Resetear posición original">
           ⟳ Resetear Posición
         </button>
+        ${this.currentPreset?.isSandbox ? `<button class="dup-light-btn" id="btn-dup-light" title="Duplicar luz">⧉</button>` : ''}
       </div>
     `;
 
@@ -318,21 +337,82 @@ export class UI {
 
         document.getElementById('ctrl-color')?.addEventListener('input', (e) => {
             this.lightingSystem.updateLightColor(lightName, e.target.value);
-
-            // Update preset data
             const lightConfig = this.currentPreset.lights.find(l => l.name === lightName);
             if (lightConfig) lightConfig.color = e.target.value;
+        });
+
+        // SpotLight cone angle (only for freeLight spot type)
+        const coneSlider = document.getElementById('ctrl-cone');
+        if (coneSlider) {
+            coneSlider.addEventListener('input', (e) => {
+                const angleDeg = parseFloat(e.target.value);
+                document.getElementById('val-cone').textContent = angleDeg;
+                const light = this.lightingSystem.lightObjects.get(lightName);
+                if (light?.isSpotLight) light.angle = (angleDeg * Math.PI) / 180;
+                if (window.requestRender) window.requestRender();
+            });
+        }
+
+        // RectAreaLight width/height
+        document.getElementById('ctrl-width')?.addEventListener('input', (e) => {
+            const v = parseFloat(e.target.value);
+            document.getElementById('val-width').textContent = v.toFixed(1);
+            const light = this.lightingSystem.lightObjects.get(lightName);
+            if (light?.isRectAreaLight) light.width = v;
+            if (window.requestRender) window.requestRender();
+        });
+        document.getElementById('ctrl-height')?.addEventListener('input', (e) => {
+            const v = parseFloat(e.target.value);
+            document.getElementById('val-height').textContent = v.toFixed(1);
+            const light = this.lightingSystem.lightObjects.get(lightName);
+            if (light?.isRectAreaLight) light.height = v;
+            if (window.requestRender) window.requestRender();
         });
 
         // Reset position button
         document.getElementById('btn-reset-light')?.addEventListener('click', () => {
             this.lightingSystem.resetLightPosition(lightName);
-            // Refresh controls to show updated values
             const light = this.currentPreset.lights.find(l => l.name === lightName);
             if (light) {
                 this.updateLightControls(light);
                 this.updateDiagram(this.currentPreset);
             }
+        });
+
+        // Duplicate light button (sandbox only)
+        document.getElementById('btn-dup-light')?.addEventListener('click', () => {
+            const newConfig = this.lightingSystem.duplicateLight(lightName);
+            if (newConfig) {
+                this.currentPreset.lights.push(newConfig);
+                this.updateLightsOverview(this.currentPreset);
+                this.updateDiagram(this.currentPreset);
+                this.updateLightSelector(this.currentPreset, newConfig.name);
+                this.selectLight(newConfig);
+            }
+        });
+    }
+
+    // ========== Model Selector ==========
+    setupModelSelector() {
+        const container = document.getElementById('model-selector');
+        if (!container) return;
+
+        MODEL_REGISTRY.forEach((model, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'model-card' + (i === 0 ? ' active' : '');
+            btn.dataset.modelId = model.id;
+            btn.innerHTML = `
+        <span class="model-icon">${model.icon}</span>
+        <span class="model-name">${model.name}</span>
+      `;
+            btn.title = model.description;
+            btn.setAttribute('aria-label', model.name);
+            btn.addEventListener('click', () => {
+                switchModel(model.id);
+                container.querySelectorAll('.model-card').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+            });
+            container.appendChild(btn);
         });
     }
 

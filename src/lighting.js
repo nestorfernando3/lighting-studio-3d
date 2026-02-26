@@ -1,4 +1,9 @@
 import * as THREE from 'three';
+import { RectAreaLightHelper } from 'three/examples/jsm/helpers/RectAreaLightHelper.js';
+import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
+
+// Init RectAreaLight support
+RectAreaLightUniformsLib.init();
 
 const sharedGeometries = {
     sphere: new THREE.SphereGeometry(0.15, 16, 16),
@@ -245,6 +250,26 @@ export class LightingSystem {
         }
     }
 
+    // Duplicate an existing light
+    duplicateLight(name) {
+        const light = this.lightObjects.get(name);
+        if (!light) return null;
+        this._freeLightCounter++;
+        const pos = light.position;
+        const config = {
+            name: `${name} Copia`,
+            type: light.userData.type || 'fill',
+            position: { x: pos.x + 0.5, y: pos.y, z: pos.z + 0.5 },
+            intensity: light.intensity,
+            color: `#${light.color.getHexString()}`,
+            role: `Copia de ${name}`,
+            freeLight: true,
+            freeLightType: light.userData.freeLightType || 'point'
+        };
+        this.createLight(config);
+        return config;
+    }
+
     // Free illumination mode: create a new light of any type
     _freeLightCounter = 0;
     addFreeLight(lightType = 'spot') {
@@ -252,12 +277,14 @@ export class LightingSystem {
         const typeLabels = {
             spot: 'Spot',
             point: 'Point',
-            directional: 'Directional'
+            directional: 'Directional',
+            rect: 'Softbox'
         };
         const typeConfigs = {
             spot: { type: 'key', intensity: 2.5, color: '#ffffff', position: { x: 1.5, y: 3.0, z: 1.5 } },
             point: { type: 'fill', intensity: 2.0, color: '#ffeedd', position: { x: -1.5, y: 2.5, z: 1.0 } },
-            directional: { type: 'rim', intensity: 2.0, color: '#e0e8ff', position: { x: 0, y: 3.5, z: -2.0 } }
+            directional: { type: 'rim', intensity: 2.0, color: '#e0e8ff', position: { x: 0, y: 3.5, z: -2.0 } },
+            rect: { type: 'rect', intensity: 3.0, color: '#fff5e8', position: { x: 1.0, y: 2.5, z: 2.0 } }
         };
         const cfg = typeConfigs[lightType] || typeConfigs.spot;
         const name = `${typeLabels[lightType] || 'Luz'} ${this._freeLightCounter}`;
@@ -346,6 +373,12 @@ export class LightingSystem {
                 light.castShadow = false;
                 break;
 
+            case 'rect': {
+                const rectLight = new THREE.RectAreaLight(color, intensity, 2, 1.5);
+                light = rectLight;
+                break;
+            }
+
             default:
                 light = new THREE.PointLight(color, intensity, 0, 2);
         }
@@ -427,6 +460,12 @@ export class LightingSystem {
         helperGroup.userData.light = light;
         helperGroup.userData.type = 'helper';
         helperGroup.visible = this.showHelpers;
+
+        // For RectAreaLight — attach the native area light helper
+        if (light.isRectAreaLight) {
+            const rectHelper = new RectAreaLightHelper(light);
+            helperGroup.add(rectHelper);
+        }
 
         // Connection line
         const points = [light.position.clone(), new THREE.Vector3(0, 1.6, 0)];
