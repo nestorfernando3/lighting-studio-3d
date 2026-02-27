@@ -20,12 +20,12 @@ export const MODEL_REGISTRY = [
         name: 'Retrato Femenino',
         icon: '👩',
         path: './models/female_portrait.glb',
-        scale: 0.26,
-        positionY: 1.6,
+        scale: 2.0,
+        positionY: 1.1,
         skinColor: 0xf0c9a0,
         hideBase: false,
-        preserveMaterial: false,
-        description: 'Modelo femenino realista'
+        preserveMaterial: true,
+        description: 'Modelo femenino — rostro realista'
     },
     {
         id: 'nefertiti',
