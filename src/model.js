@@ -11,23 +11,37 @@ export const MODEL_REGISTRY = [
         scale: 0.26,
         positionY: 1.6,
         skinColor: 0xd4a574,
-        hideBase: false,        // show the generated bust/neck cylinder
-        preserveMaterial: false, // override with skinColor material
+        hideBase: false,
+        preserveMaterial: false,
         description: 'Modelo masculino realista'
     },
     {
         id: 'female',
         name: 'Retrato Femenino',
         icon: '👩',
+        path: './models/female_portrait.glb',
+        scale: 0.26,
+        positionY: 1.6,
+        skinColor: 0xf0c9a0,
+        hideBase: false,
+        preserveMaterial: false,
+        description: 'Modelo femenino realista'
+    },
+    {
+        id: 'nefertiti',
+        name: 'Nefertiti',
+        icon: '👑',
         path: './models/female_head.glb',
         scale: 0.07,
         positionY: 0.25,
         skinColor: 0xf5c5a3,
-        hideBase: true,          // hide generated cylinder (model has its own base)
-        preserveMaterial: true,  // keep original GLB textures/colors
-        description: 'Modelo femenino realista'
+        hideBase: true,
+        preserveMaterial: true,
+        materialBoost: true,      // brightens dark GLB materials
+        description: 'Busto de Nefertiti'
     }
 ];
+
 
 class ModelManager {
     constructor(scene) {
@@ -140,8 +154,20 @@ class ModelManager {
                                 normalMap: orig?.normalMap || null,
                                 normalScale: new THREE.Vector2(0.8, 0.8)
                             });
+                        } else if (config.materialBoost) {
+                            // Keep original materials but boost brightness
+                            const mats = Array.isArray(child.material)
+                                ? child.material : [child.material];
+                            mats.forEach(mat => {
+                                if (mat?.isMeshStandardMaterial || mat?.isMeshPhysicalMaterial) {
+                                    mat.roughness = Math.max(0.2, (mat.roughness ?? 0.8) - 0.3);
+                                    mat.emissive = mat.emissive || new THREE.Color(0x000000);
+                                    mat.emissive.set(0x1a1008);
+                                    mat.emissiveIntensity = 0.4;
+                                    mat.needsUpdate = true;
+                                }
+                            });
                         }
-                        // else: keep original GLB materials as-is
                     }
                 });
 
