@@ -4,28 +4,27 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 // ====== Model registry — add more GLB models here ======
 export const MODEL_REGISTRY = [
     {
-        id: 'male',
-        name: 'Retrato Masculino',
-        icon: '👨',
+        id: 'head',
+        name: 'Rostro Humano',
+        icon: '🧑',
         path: './models/head.glb',
         scale: 0.26,
         positionY: 1.6,
         skinColor: 0xd4a574,
         hideBase: false,
         preserveMaterial: false,
-        description: 'Modelo masculino realista'
+        description: 'Modelo escaneo 3D de rostro humano'
     },
     {
-        id: 'female',
-        name: 'Retrato Femenino',
-        icon: '👩',
-        path: './models/female_portrait.glb',
-        scale: 0.26,
-        positionY: 1.6,
-        skinColor: 0xf0c0a0,
-        hideBase: false,
-        preserveMaterial: false,
-        description: 'Escaneo 3D detallado — tono femenino'
+        id: 'marble_bust',
+        name: 'Busto Mármol',
+        icon: '🏛️',
+        path: './models/marble_bust_01/marble_bust_01_1k.gltf',
+        scale: 4.0,
+        positionY: 0.0,
+        hideBase: true,
+        preserveMaterial: true,
+        description: 'Busto clásico de mármol — Poly Haven CC0'
     },
     {
         id: 'nefertiti',
@@ -38,6 +37,28 @@ export const MODEL_REGISTRY = [
         preserveMaterial: true,
         materialBoost: true,
         description: 'Busto de Nefertiti'
+    },
+    {
+        id: 'croissant',
+        name: 'Croissant',
+        icon: '🥐',
+        path: './models/croissant/croissant_1k.gltf',
+        scale: 12.0,
+        positionY: 1.2,
+        hideBase: false,
+        preserveMaterial: true,
+        description: 'Croissant — iluminación de producto / Poly Haven CC0'
+    },
+    {
+        id: 'duck',
+        name: 'Pato de Goma',
+        icon: '🦆',
+        path: './models/rubber_duck_toy/rubber_duck_toy_1k.gltf',
+        scale: 8.0,
+        positionY: 1.0,
+        hideBase: false,
+        preserveMaterial: true,
+        description: 'Pato de goma — iluminación de producto / Poly Haven CC0'
     }
 ];
 
@@ -55,7 +76,7 @@ class ModelManager {
 
         this.scene.add(this.modelGroup);
         this.createBase();
-        this.loadModel('male');
+        this.loadModel('head');
     }
 
     createBase() {
