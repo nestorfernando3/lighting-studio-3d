@@ -44,7 +44,7 @@ export const MODEL_REGISTRY = [
         icon: '🥐',
         path: './models/croissant/croissant_1k.gltf',
         scale: 12.0,
-        positionY: 1.2,
+        positionY: 1.05,
         hideBase: false,
         preserveMaterial: true,
         description: 'Croissant — iluminación de producto / Poly Haven CC0'
@@ -54,8 +54,8 @@ export const MODEL_REGISTRY = [
         name: 'Pato de Goma',
         icon: '🦆',
         path: './models/rubber_duck_toy/rubber_duck_toy_1k.gltf',
-        scale: 8.0,
-        positionY: 1.0,
+        scale: 4.5,
+        positionY: 1.05,
         hideBase: false,
         preserveMaterial: true,
         description: 'Pato de goma — iluminación de producto / Poly Haven CC0'
@@ -241,11 +241,32 @@ export function switchModelForLighting() {
 
 
 export function createEnvironment(scene) {
-    // Ground
-    const groundGeo = new THREE.CircleGeometry(12, 64);
+    // Basic settings for gray backdrop
+    const defaultColor = 0x737373; // Gris 18%
+    const envRoughness = 0.98;
+
+    // Smooth Photography Cyc Wall (curved backdrop)
+    // We create a curved plane using CylinderGeometry (inside out)
+    const cycGeo = new THREE.CylinderGeometry(15, 15, 20, 48, 1, true, Math.PI * 0.5, Math.PI);
+    const cycMat = new THREE.MeshStandardMaterial({
+        color: defaultColor,
+        roughness: envRoughness,
+        metalness: 0.05,
+        side: THREE.BackSide // Render the inside of the cylinder
+    });
+
+    const backdrop = new THREE.Mesh(cycGeo, cycMat);
+    // Position it so the back of the cylinder is behind the camera target
+    // and the floor of the cylinder is almost at y=0, then we blend it with the ground
+    backdrop.position.set(0, 5, 5);
+    backdrop.receiveShadow = true;
+    scene.add(backdrop);
+
+    // Ground (seamless with cyc wall)
+    const groundGeo = new THREE.CircleGeometry(15, 64);
     const groundMat = new THREE.MeshStandardMaterial({
-        color: 0x080810,
-        roughness: 0.95,
+        color: defaultColor,
+        roughness: envRoughness,
         metalness: 0.05
     });
     const ground = new THREE.Mesh(groundGeo, groundMat);
@@ -257,18 +278,6 @@ export function createEnvironment(scene) {
     // Ambient light
     const ambientLight = new THREE.AmbientLight(0x404060, 0.5);
     scene.add(ambientLight);
-
-    // Backdrop
-    const backdropGeo = new THREE.PlaneGeometry(20, 12);
-    const backdropMat = new THREE.MeshStandardMaterial({
-        color: 0x12182a,
-        roughness: 0.98,
-        metalness: 0.02
-    });
-    const backdrop = new THREE.Mesh(backdropGeo, backdropMat);
-    backdrop.position.set(0, 5, -4);
-    backdrop.receiveShadow = true;
-    scene.add(backdrop);
 
     return { ground, backdrop, ambientLight };
 }
