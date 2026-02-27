@@ -19,11 +19,13 @@ export const MODEL_REGISTRY = [
         id: 'female',
         name: 'Retrato Femenino',
         icon: '👩',
-        procedural: true,       // built with Three.js geometry, no GLB needed
-        skinColor: 0xe8c4a0,
-        hairColor: 0x1a0f08,
+        path: './models/female_portrait.glb',
+        scale: 4.0,
+        positionY: 1.55,
+        skinColor: 0xf0c0a0,
         hideBase: false,
-        description: 'Modelo femenino estilizado'
+        preserveMaterial: false,
+        description: 'Escaneo 3D detallado — tono femenino'
     },
     {
         id: 'nefertiti',
@@ -112,17 +114,6 @@ class ModelManager {
             this.currentHead = null;
         }
 
-        if (config.procedural) {
-            // Build head from Three.js geometry (no GLB needed)
-            const head = this.createProceduralHead(config);
-            this.modelGroup.add(head);
-            this.currentHead = head;
-            this.isLoading = false;
-            if (loading) loading.classList.add('hidden');
-            if (window.requestRender) window.requestRender();
-            return;
-        }
-
         // Placeholder wireframe while loading
         const placeholder = new THREE.Mesh(
             new THREE.SphereGeometry(0.4, 16, 16),
@@ -198,68 +189,6 @@ class ModelManager {
                 if (loading) loading.classList.add('hidden');
             }
         );
-    }
-
-    // Build a stylized female head from Three.js geometry
-    createProceduralHead(config) {
-        const skin = new THREE.MeshStandardMaterial({
-            color: config.skinColor,
-            roughness: 0.52,
-            metalness: 0.0
-        });
-        const hairMat = new THREE.MeshStandardMaterial({
-            color: config.hairColor || 0x1a0f08,
-            roughness: 0.88,
-            metalness: 0.0
-        });
-
-        const group = new THREE.Group();
-        group.position.y = 1.55; // align with male head positionY
-
-        const applyShading = mesh => {
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
-        };
-
-        // ---- Cranium (feminine: taller, narrower jaw) ----
-        const craniumGeo = new THREE.SphereGeometry(0.46, 40, 30);
-        craniumGeo.applyMatrix4(new THREE.Matrix4().makeScale(1.0, 1.12, 0.96));
-        const cranium = new THREE.Mesh(craniumGeo, skin.clone());
-        cranium.position.y = 0.06;
-        applyShading(cranium);
-        group.add(cranium);
-
-        // ---- Jaw/chin cap (lower hemisphere, tapered for feminine chin) ----
-        const jawGeo = new THREE.SphereGeometry(0.34, 36, 18, 0, Math.PI * 2, Math.PI * 0.52, Math.PI * 0.5);
-        jawGeo.applyMatrix4(new THREE.Matrix4().makeScale(1.0, 0.9, 0.96));
-        const jaw = new THREE.Mesh(jawGeo, skin.clone());
-        jaw.position.y = -0.16;
-        applyShading(jaw);
-        group.add(jaw);
-
-        // ---- Neck ----
-        const neckGeo = new THREE.CylinderGeometry(0.16, 0.21, 0.48, 20);
-        const neck = new THREE.Mesh(neckGeo, skin.clone());
-        neck.position.y = -0.68;
-        applyShading(neck);
-        group.add(neck);
-
-        // ---- Shoulder / clavicle hint ----
-        const shoulderGeo = new THREE.CylinderGeometry(0.42, 0.44, 0.12, 24);
-        const shoulder = new THREE.Mesh(shoulderGeo, skin.clone());
-        shoulder.position.y = -0.96;
-        applyShading(shoulder);
-        group.add(shoulder);
-
-        // ---- Hair cap (dark semi-sphere slightly larger than cranium) ----
-        const hairGeo = new THREE.SphereGeometry(0.49, 36, 20, 0, Math.PI * 2, 0, Math.PI * 0.52);
-        hairGeo.applyMatrix4(new THREE.Matrix4().makeScale(1.0, 1.08, 0.96));
-        const hair = new THREE.Mesh(hairGeo, hairMat.clone());
-        hair.position.y = 0.09;
-        applyShading(hair);
-        group.add(hair);
-
-        return group;
     }
 
     getModelGroup() {
