@@ -12,6 +12,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
     "electron:build": "npm run build && electron-builder",
     "electron:build:win": "npm run build && electron-builder --win",
@@ -28,6 +30,7 @@
     "electron-squirrel-startup": "^1.0.0",
     "png-to-ico": "^3.0.1",
     "vite": "^7.2.4",
+    "vitest": "^1.6.0",
     "wait-on": "^7.2.0"
   },
   "dependencies": {

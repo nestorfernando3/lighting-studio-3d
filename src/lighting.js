@@ -240,8 +240,10 @@ export class LightingSystem {
     // Reset a light to its original preset position
     resetLightPosition(name) {
         const light = this.getLight(name);
-        if (light && light.userData.config) {
-            const pos = light.userData.config.position;
+        if (light) {
+            // Use the deep-cloned original position (not the mutated config reference)
+            const pos = light.userData.originalPosition || light.userData.config?.position;
+            if (!pos) return;
             light.position.set(pos.x, pos.y, pos.z);
             this.updateHelpers();
             if (this.onLightDrag) {
@@ -387,6 +389,9 @@ export class LightingSystem {
         light.name = name;
         light.userData.type = type;
         light.userData.config = config;
+        // Deep-clone the original position so reset always works,
+        // even after sliders or drag mutate config.position
+        light.userData.originalPosition = { x: position.x, y: position.y, z: position.z };
         light.userData.enabled = enabled !== false;
         light.visible = enabled !== false;
 
@@ -603,5 +608,23 @@ export class LightingSystem {
 
     getLights() {
         return this.lights;
+    }
+
+    /**
+     * Release all Three.js resources held by this system.
+     * Call this when the lighting system is being destroyed.
+     */
+    dispose() {
+        this.clearLights();
+
+        // Dispose shared geometries
+        Object.values(sharedGeometries).forEach(geo => geo.dispose());
+
+        // Remove canvas event listeners by cloning (lightweight teardown)
+        const canvas = this.renderer?.domElement;
+        if (canvas) {
+            const clone = canvas.cloneNode(false);
+            canvas.parentNode?.replaceChild(clone, canvas);
+        }
     }
 }

@@ -118,14 +118,7 @@ window.addEventListener('resize', () => {
     requestRenderIfNotRequested();
 });
 
-// Expose renderer change to UI exposure
-const exposureInput = document.getElementById('exposure');
-if (exposureInput) {
-    exposureInput.addEventListener('input', (e) => {
-        renderer.toneMappingExposure = parseFloat(e.target.value);
-        requestRenderIfNotRequested();
-    });
-}
+// Note: exposure input is handled in UI class to avoid duplicate listeners
 
 // PWA Service Worker Registration
 if ('serviceWorker' in navigator) {
@@ -141,8 +134,10 @@ if ('serviceWorker' in navigator) {
 
 requestRenderIfNotRequested();
 
-// Debug exports
-window.scene = scene;
-window.camera = camera;
-window.lightingSystem = lightingSystem;
-window.renderer = renderer;
+// Debug exports (development only)
+if (import.meta.env.DEV) {
+    window.scene = scene;
+    window.camera = camera;
+    window.lightingSystem = lightingSystem;
+    window.renderer = renderer;
+}

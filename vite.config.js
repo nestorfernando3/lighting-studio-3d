@@ -13,5 +13,11 @@ export default defineConfig(({ command }) => ({
     ],
     build: {
         target: 'esnext'
+    },
+    test: {
+        environment: 'node',
+        include: ['tests/**/*.test.js'],
+        globals: false
     }
 }));
+

@@ -4,6 +4,24 @@ Todos los cambios notables de este proyecto serán documentados aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
+## [1.3.0] - 2026-03-01
+
+### 🔧 Arquitectura y Técnico
+
+- **Descomposición UI**: El monolítico `ui.js` (559 líneas) fue refactorizado en un orquestador que delega en 4 módulos independientes (`LessonNavigator.js`, `LightControls.js`, `SandboxManager.js`, `ScreenshotExporter.js`).
+- **Seguridad DOM**: Eliminado todo el uso de `innerHTML` con interpolación de strings. Creadas utilidades en `src/utils/dom.js` (`createElement`, `bindSlider`, etc.) para interactuar con la API del DOM de forma segura.
+- **Gestión de Memoria**: Añadido método `dispose()` a `LightingSystem` para limpiar recursos de WebGL (geometrías, materiales compartidos) y prevenir memory leaks durante sesiones largas.
+- **Testing**: Integración de `Vitest` como framework de pruebas unitarias. Creados 26 tests (todos en verde) validando estructura de presets, configuración de colores y comportamiento completo del sistema de luces (creación, edición, eliminación y reset).
+- **Limpieza**: Eliminados archivos muertos (`counter.js`, `main.js` antiguo, etc.) del template original de Vite.
+- **Seguridad**: Los objetos globales de debug (`window.scene`, etc.) ahora solo se exponen en entorno de desarrollo (`import.meta.env.DEV`).
+
+### 🐛 Arreglado
+
+- **Reset de Luces**: Corregido bug donde el botón "Resetear Posición" no hacía nada porque mutaba la referencia del preset. Ahora usa un clone profundo (`userData.originalPosition`).
+- **Doble Panel en Sandbox**: Arreglado fallo al duplicar luz que causaba un doble-render en la lista de luces por listeners duplicados.
+
+---
+
 ## [1.2.0] - 2026-02-26
 
 ### ✨ Agregado
