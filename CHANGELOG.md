@@ -6,19 +6,17 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ## [1.3.0] - 2026-03-01
 
-### 🔧 Arquitectura y Técnico
+### 🚀 Mejoras de Rendimiento y Estabilidad
 
-- **Descomposición UI**: El monolítico `ui.js` (559 líneas) fue refactorizado en un orquestador que delega en 4 módulos independientes (`LessonNavigator.js`, `LightControls.js`, `SandboxManager.js`, `ScreenshotExporter.js`).
-- **Seguridad DOM**: Eliminado todo el uso de `innerHTML` con interpolación de strings. Creadas utilidades en `src/utils/dom.js` (`createElement`, `bindSlider`, etc.) para interactuar con la API del DOM de forma segura.
-- **Gestión de Memoria**: Añadido método `dispose()` a `LightingSystem` para limpiar recursos de WebGL (geometrías, materiales compartidos) y prevenir memory leaks durante sesiones largas.
-- **Testing**: Integración de `Vitest` como framework de pruebas unitarias. Creados 26 tests (todos en verde) validando estructura de presets, configuración de colores y comportamiento completo del sistema de luces (creación, edición, eliminación y reset).
-- **Limpieza**: Eliminados archivos muertos (`counter.js`, `main.js` antiguo, etc.) del template original de Vite.
-- **Seguridad**: Los objetos globales de debug (`window.scene`, etc.) ahora solo se exponen en entorno de desarrollo (`import.meta.env.DEV`).
+- **Aplicación más ligera y rápida**: Se reorganizó el código interno para que la interfaz cargue y responda con mayor fluidez.
+- **Prevención de cuelgues (Memory Management)**: El sistema ahora libera memoria automáticamente al cambiar de menús o eliminar luces, evitando que la aplicación se ponga lenta o se cierre inesperadamente durante sesiones largas de estudio.
+- **Mayor Seguridad**: Se actualizaron y aseguraron los componentes visuales para cumplir con los estándares web modernos, protegiendo al usuario.
+- **Fiabilidad garantizada**: Se integraron pruebas automáticas bajo el capó para asegurar que las luces y los escenarios siempre se comporten exactamente como se espera.
 
-### 🐛 Arreglado
+### 🐛 Errores Solucionados
 
-- **Reset de Luces**: Corregido bug donde el botón "Resetear Posición" no hacía nada porque mutaba la referencia del preset. Ahora usa un clone profundo (`userData.originalPosition`).
-- **Doble Panel en Sandbox**: Arreglado fallo al duplicar luz que causaba un doble-render en la lista de luces por listeners duplicados.
+- **Botón "Resetear Posición"**: Solucionado un problema donde el botón para devolver las luces a su estado original dejaba de funcionar tras mover los controles deslizantes manualmente.
+- **Doble Panel en Modo Libre**: Arreglado un error visual donde, al usar el botón de duplicar luz, la nueva luz aparecía repetida en la interfaz.
 
 ---
 
