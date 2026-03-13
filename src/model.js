@@ -151,7 +151,11 @@ class ModelManager {
                 const head = gltf.scene;
 
                 const ph = this.modelGroup.getObjectByName('placeholder');
-                if (ph) this.modelGroup.remove(ph);
+                if (ph) {
+                    this.modelGroup.remove(ph);
+                    if (ph.geometry) ph.geometry.dispose();
+                    if (ph.material) ph.material.dispose();
+                }
 
                 head.scale.set(config.scale, config.scale, config.scale);
                 head.position.set(0, config.positionY, 0);
@@ -207,7 +211,11 @@ class ModelManager {
                 console.error('Error loading model:', error);
                 this.isLoading = false;
                 const ph = this.modelGroup.getObjectByName('placeholder');
-                if (ph) this.modelGroup.remove(ph);
+                if (ph) {
+                    this.modelGroup.remove(ph);
+                    if (ph.geometry) ph.geometry.dispose();
+                    if (ph.material) ph.material.dispose();
+                }
                 if (loading) loading.classList.add('hidden');
             }
         );

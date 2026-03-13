@@ -383,7 +383,7 @@ export class LightingSystem {
             case 'key':
                 light = new THREE.SpotLight(color, intensity, 0, Math.PI / 4, 0.5, 1.5);
                 light.castShadow = true;
-                const shadowSize = window.innerWidth < 768 ? 1024 : 2048;
+                const shadowSize = (typeof window !== 'undefined' && window.innerWidth < 768) ? 1024 : 2048;
                 light.shadow.mapSize.width = shadowSize;
                 light.shadow.mapSize.height = shadowSize;
                 light.shadow.camera.near = 0.5;
@@ -532,9 +532,16 @@ export class LightingSystem {
                     helper.position.copy(light.position);
                     helper.visible = this.showHelpers && light.visible;
                 } else if (helper.userData.type === 'line') {
-                    const points = [light.position.clone(), new THREE.Vector3(0, 1.6, 0)];
-                    helper.geometry.setFromPoints(points);
-                    helper.computeLineDistances();
+                    const pos = helper.geometry.attributes?.position;
+                    if (pos) {
+                        pos.setXYZ(0, light.position.x, light.position.y, light.position.z);
+                        pos.needsUpdate = true;
+                    } else {
+                        // Fallback for test environments without full BufferGeometry mock
+                        const points = [light.position.clone(), new THREE.Vector3(0, 1.6, 0)];
+                        helper.geometry.setFromPoints(points);
+                    }
+                    if (helper.computeLineDistances) helper.computeLineDistances();
                     helper.visible = this.showHelpers && light.visible;
                 }
             }
@@ -647,12 +654,5 @@ export class LightingSystem {
 
         // Dispose shared geometries
         Object.values(sharedGeometries).forEach(geo => geo.dispose());
-
-        // Remove canvas event listeners by cloning (lightweight teardown)
-        const canvas = this.renderer?.domElement;
-        if (canvas) {
-            const clone = canvas.cloneNode(false);
-            canvas.parentNode?.replaceChild(clone, canvas);
-        }
     }
 }

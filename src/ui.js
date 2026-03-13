@@ -11,6 +11,7 @@ import { getPresetNames, getPreset } from './presets.js';
 import { switchModelForLighting, switchModel, MODEL_REGISTRY, BACKGROUND_PRESETS, setBackdropColor } from './model.js';
 import { setupOnboarding } from './onboarding.js';
 import { renderDiagram } from './diagram.js';
+import { clearChildren } from './utils/dom.js';
 import { LessonNavigator } from './ui/LessonNavigator.js';
 import { LightControls } from './ui/LightControls.js';
 import { appEvents } from './utils/events.js';
@@ -124,7 +125,7 @@ export class UI {
             if (!this.currentPreset.lights.find(l => l.name === this.lightControls.selectedLightName)) {
                 this.lightControls.selectedLightName = null;
                 const container = document.getElementById('light-controls');
-                if (container) container.innerHTML = '';
+                if (container) clearChildren(container);
             }
             this._updateLightsOverview();
         }
@@ -138,8 +139,12 @@ export class UI {
     }
 
     _setupGeneralControls() {
-        document.getElementById('controls-toggle')?.addEventListener('click', () => {
-            document.getElementById('controls-panel')?.classList.toggle('collapsed');
+        document.getElementById('controls-toggle')?.addEventListener('click', (e) => {
+            const panel = document.getElementById('controls-panel');
+            if (panel) {
+                panel.classList.toggle('collapsed');
+                e.currentTarget.setAttribute('aria-expanded', panel.classList.contains('collapsed') ? 'false' : 'true');
+            }
         });
 
         document.getElementById('exposure')?.addEventListener('input', (e) => {

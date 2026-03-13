@@ -109,20 +109,24 @@ lightingSystem.onLightDrag = (lightName, position) => {
 lightingSystem.onChange = requestRenderIfNotRequested;
 
 // Resize handler
+let resizeTimeout;
 window.addEventListener('resize', () => {
-    const aspect = window.innerWidth / window.innerHeight;
-    camera.aspect = aspect;
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        const aspect = window.innerWidth / window.innerHeight;
+        camera.aspect = aspect;
 
-    // Adjust FOV for portrait mobile screens
-    if (aspect < 1) {
-        camera.fov = 40 + (1 - aspect) * 20; // Increase FOV as it gets narrower
-    } else {
-        camera.fov = 40;
-    }
+        // Adjust FOV for portrait mobile screens
+        if (aspect < 1) {
+            camera.fov = 40 + (1 - aspect) * 20; // Increase FOV as it gets narrower
+        } else {
+            camera.fov = 40;
+        }
 
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    requestRenderIfNotRequested();
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        requestRenderIfNotRequested();
+    }, 100);
 });
 
 // Note: exposure input is handled in UI class to avoid duplicate listeners

@@ -4,6 +4,19 @@ Todos los cambios notables de este proyecto serán documentados aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
+## [1.4.1] - 2026-03-13
+
+### 🚀 Optimización Profunda y Seguridad (Fase 2)
+
+- **Seguridad Electron (CSP)**: Se implementó Content-Security-Policy estricto desde el proceso principal (`main.cjs`) y se retiró la flag obsoleta `disable-gpu-sandbox` cerrando posibles vectores de XSS.
+- **Rendimiento UI**: Implementación de un *debounce* optimizado (100ms) en el manejador del `resize` global para prevenir el *layout thrashing* agresivo en dispositivos móviles.
+- **Prevención de Fugas de Memoria Avanzada**: 
+  - Se añadieron capacidades nativas `off()` y `once()` al Bus de Eventos (`events.js`) eliminando referencias residuales entre cambios de estado.
+  - Se solucionó una fuga en la VRAM al garantizar el `dispose()` de geometrías temporales (placeholders) en la carga de modelos 3D (`model.js`).
+- **Optimización de Interacción 3D**: La actualización de geometrías de las líneas guía durante el *drag* ahora reutiliza buffers nativos (`Float32Array.setXYZ`) eliminando los picos de Garbage Collector y tirones de FPS.
+- **Estabilidad PWA**: La caché local ahora incluye explícitamente contenedores de malla `.bin` y `.gltf` asegurando un encendido verdaderamente offline inclusive en el caché de Workbox.
+- **Seguridad DOM**: Se sustituyó todo uso de `innerHTML = ''` implícito en favor de utilidades seguras del DOM y se previno el borrado destructivo del Contexto WebGL al recargar el lienzo de renderizado.
+
 ## [1.4.0] - 2026-03-13
 
 ### 🚀 Optimización y Rendimiento (Core)

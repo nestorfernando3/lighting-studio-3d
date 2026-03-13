@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, session } = require('electron');
 const path = require('path');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling
@@ -55,7 +55,19 @@ function createWindow() {
 }
 
 // Create window when Electron is ready
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+    // Add CSP Headers for security
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+        callback({
+            responseHeaders: {
+                ...details.responseHeaders,
+                'Content-Security-Policy': ["default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:"]
+            }
+        });
+    });
+
+    createWindow();
+});
 
 // Quit when all windows are closed (except on macOS)
 app.on('window-all-closed', () => {
@@ -71,6 +83,5 @@ app.on('activate', () => {
     }
 });
 
-// Disable hardware acceleration issues on some systems
-app.commandLine.appendSwitch('disable-gpu-sandbox');
+// Enable WebGL
 app.commandLine.appendSwitch('enable-webgl');
