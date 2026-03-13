@@ -306,6 +306,29 @@ export class LightingSystem {
         return config;
     }
 
+    // Recursively dispose geometries and materials to avoid memory leaks
+    disposeNode(node) {
+        if (!node) return;
+        const isSharedGeometry = Object.values(sharedGeometries).includes(node.geometry);
+        if (node.geometry && !isSharedGeometry) {
+            node.geometry.dispose();
+        }
+        if (node.material) {
+            if (Array.isArray(node.material)) {
+                node.material.forEach(m => m.dispose());
+            } else {
+                node.material.dispose();
+            }
+        }
+        // Specific helpers like RectAreaLightHelper might have their own dispose
+        if (typeof node.dispose === 'function' && !node.isMesh && !node.isLine && !node.isGroup) {
+            node.dispose();
+        }
+        if (node.children) {
+            node.children.forEach(child => this.disposeNode(child));
+        }
+    }
+
     // Remove a specific light by name
     removeLight(name) {
         const light = this.lightObjects.get(name);
@@ -320,6 +343,8 @@ export class LightingSystem {
         if (helperData) {
             this.scene.remove(helperData.group);
             this.scene.remove(helperData.line);
+            this.disposeNode(helperData.group);
+            this.disposeNode(helperData.line);
             this.helpers = this.helpers.filter(h =>
                 h !== helperData.group && h !== helperData.line
             );
@@ -336,9 +361,11 @@ export class LightingSystem {
         this.lights.forEach(light => {
             if (light.target) this.scene.remove(light.target);
             this.scene.remove(light);
+            if (typeof light.dispose === 'function') light.dispose();
         });
         this.helpers.forEach(helper => {
             this.scene.remove(helper);
+            this.disposeNode(helper);
         });
         this.lights = [];
         this.helpers = [];
@@ -356,8 +383,9 @@ export class LightingSystem {
             case 'key':
                 light = new THREE.SpotLight(color, intensity, 0, Math.PI / 4, 0.5, 1.5);
                 light.castShadow = true;
-                light.shadow.mapSize.width = 2048;
-                light.shadow.mapSize.height = 2048;
+                const shadowSize = window.innerWidth < 768 ? 1024 : 2048;
+                light.shadow.mapSize.width = shadowSize;
+                light.shadow.mapSize.height = shadowSize;
                 light.shadow.camera.near = 0.5;
                 light.shadow.camera.far = 20;
                 light.shadow.bias = -0.0001;

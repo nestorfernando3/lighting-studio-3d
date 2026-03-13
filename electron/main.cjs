@@ -26,8 +26,7 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
-            webgl: true,
-            experimentalFeatures: true
+            webgl: true
         },
         backgroundColor: '#0a0a12',
         show: false, // Don't show until ready

@@ -13,6 +13,7 @@ import { setupOnboarding } from './onboarding.js';
 import { renderDiagram } from './diagram.js';
 import { LessonNavigator } from './ui/LessonNavigator.js';
 import { LightControls } from './ui/LightControls.js';
+import { appEvents } from './utils/events.js';
 import { SandboxManager } from './ui/SandboxManager.js';
 import { ScreenshotExporter } from './ui/ScreenshotExporter.js';
 
@@ -67,7 +68,8 @@ export class UI {
 
         this.navigator.index = index;
         const presetName = presetNames[index];
-        this.currentPreset = getPreset(presetName);
+        const rawPreset = getPreset(presetName);
+        this.currentPreset = JSON.parse(JSON.stringify(rawPreset));
 
         await switchModelForLighting(this.currentPreset.id);
 
@@ -143,7 +145,7 @@ export class UI {
         document.getElementById('exposure')?.addEventListener('input', (e) => {
             if (this.renderer) {
                 this.renderer.toneMappingExposure = parseFloat(e.target.value);
-                window.requestRender?.();
+                appEvents.emit('requestRender');
             }
         });
 

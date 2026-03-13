@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { appEvents } from './utils/events.js';
 
 // ====== Model registry — add more GLB models here ======
 export const MODEL_REGISTRY = [
@@ -199,7 +200,7 @@ class ModelManager {
                 this.isLoading = false;
 
                 if (loading) loading.classList.add('hidden');
-                if (window.requestRender) window.requestRender();
+                appEvents.emit('requestRender');
             },
             null,
             (error) => {
@@ -303,5 +304,5 @@ export function setBackdropColor(scene, environment, colorHex) {
     if (environment.ground) {
         environment.ground.material.color.set(color);
     }
-    if (window.requestRender) window.requestRender();
+    appEvents.emit('requestRender');
 }

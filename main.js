@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { createPortraitModel, createEnvironment } from './src/model.js';
 import { LightingSystem } from './src/lighting.js';
 import { UI } from './src/ui.js';
+import { appEvents } from './src/utils/events.js';
 
 // Scene
 const canvas = document.getElementById('scene-canvas');
@@ -24,8 +25,7 @@ camera.lookAt(0, 1.65, 0);
 const renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: true,
-    alpha: true,
-    preserveDrawingBuffer: true
+    alpha: true
 });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -47,7 +47,10 @@ controls.target.set(0, 1.65, 0);
 controls.enablePan = false;
 controls.update();
 
-window.controls = controls;
+appEvents.on('resetControls', () => {
+    controls.reset();
+    requestRenderIfNotRequested();
+});
 
 // Create model and environment
 const model = createPortraitModel(scene);
@@ -73,8 +76,12 @@ function requestRenderIfNotRequested() {
     }
 }
 
-// Expose globally for async model loading and UI updates
-window.requestRender = requestRenderIfNotRequested;
+// Export function to UI via EventBus instead of window
+appEvents.on('requestRender', requestRenderIfNotRequested);
+
+appEvents.on('forceRenderSync', () => {
+    renderer.render(scene, camera);
+});
 
 controls.addEventListener('change', requestRenderIfNotRequested);
 
@@ -120,17 +127,7 @@ window.addEventListener('resize', () => {
 
 // Note: exposure input is handled in UI class to avoid duplicate listeners
 
-// PWA Service Worker Registration
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        const swPath = import.meta.env.BASE_URL + 'sw.js';
-        navigator.serviceWorker.register(swPath).then(registration => {
-            console.log('SW registered: ', registration.scope);
-        }).catch(error => {
-            console.log('SW registration failed: ', error);
-        });
-    });
-}
+// PWA Service Worker Registration is handled centrally by vite-plugin-pwa auto injection.
 
 requestRenderIfNotRequested();
 

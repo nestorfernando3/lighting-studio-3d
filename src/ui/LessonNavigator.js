@@ -3,6 +3,7 @@
  * header updates, goal/observe sections and keyboard shortcuts.
  */
 import { clearChildren, setText } from '../utils/dom.js';
+import { appEvents } from '../utils/events.js';
 
 export class LessonNavigator {
     /**
@@ -118,7 +119,7 @@ export class LessonNavigator {
                     }
                     break;
                 case 'r': case 'R':
-                    window.controls?.reset();
+                    appEvents.emit('resetControls');
                     break;
                 default: {
                     const idx = parseInt(e.key) - 1;

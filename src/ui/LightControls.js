@@ -3,6 +3,7 @@
  * cone/softbox controls and drag feedback in the controls panel.
  */
 import { createElement, clearChildren, bindSlider } from '../utils/dom.js';
+import { appEvents } from '../utils/events.js';
 
 export class LightControls {
     /**
@@ -207,19 +208,19 @@ export class LightControls {
         bindSlider('ctrl-cone', (angleDeg) => {
             const light = this.lightingSystem.lightObjects.get(lightName);
             if (light?.isSpotLight) light.angle = (angleDeg * Math.PI) / 180;
-            window.requestRender?.();
+            appEvents.emit('requestRender');
         }, 0);
 
         // RectAreaLight dimensions
         bindSlider('ctrl-width', (v) => {
             const light = this.lightingSystem.lightObjects.get(lightName);
             if (light?.isRectAreaLight) light.width = v;
-            window.requestRender?.();
+            appEvents.emit('requestRender');
         });
         bindSlider('ctrl-height', (v) => {
             const light = this.lightingSystem.lightObjects.get(lightName);
             if (light?.isRectAreaLight) light.height = v;
-            window.requestRender?.();
+            appEvents.emit('requestRender');
         });
 
         // Reset position button

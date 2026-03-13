@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import { visualizer } from 'rollup-plugin-visualizer';
+import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(({ command }) => ({
     base: command === 'build' ? '/lighting-studio-3d/' : '/',
@@ -9,6 +10,12 @@ export default defineConfig(({ command }) => ({
             open: false,
             gzipSize: true,
             brotliSize: true
+        }),
+        VitePWA({
+            registerType: 'autoUpdate',
+            workbox: {
+                globPatterns: ['**/*.{js,css,html,ico,png,svg,glb,json}']
+            }
         })
     ],
     build: {

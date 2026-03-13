@@ -4,21 +4,35 @@ Todos los cambios notables de este proyecto serán documentados aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
-## [1.3.0] - 2026-03-01
+## [1.4.0] - 2026-03-13
 
-### 🚀 Mejoras de Rendimiento y Estabilidad
+### 🚀 Optimización y Rendimiento (Core)
 
-- **Aplicación más ligera y rápida**: Se reorganizó el código interno para que la interfaz cargue y responda con mayor fluidez.
-- **Prevención de cuelgues (Memory Management)**: El sistema ahora libera memoria automáticamente al cambiar de menús o eliminar luces, evitando que la aplicación se ponga lenta o se cierre inesperadamente durante sesiones largas de estudio.
-- **Mayor Seguridad**: Se actualizaron y aseguraron los componentes visuales para cumplir con los estándares web modernos, protegiendo al usuario.
-- **Fiabilidad garantizada**: Se integraron pruebas automáticas bajo el capó para asegurar que las luces y los escenarios siempre se comporten exactamente como se espera.
+- **Corrección de Fugas de Memoria**: Implementación de limpieza recursiva de recursos de Three.js (geometrías y materiales) al eliminar luces o cambiar escenas, garantizando estabilidad en sesiones prolongadas.
+- **Shadow Maps Adaptativos**: Optimización dinámica de la resolución de sombras según el tamaño del dispositivo (1024px móvil / 2048px escritorio) para mejorar los FPS en dispositivos móviles.
+- **Renderizado Eficiente**: Optimización del buffer de dibujo WebGL para un rendimiento superior, habilitando la captura de capturas de pantalla solo bajo demanda.
 
-### 🐛 Errores Solucionados
+### 🌐 PWA y Distribución
 
-- **Botón "Resetear Posición"**: Solucionado un problema donde el botón para devolver las luces a su estado original dejaba de funcionar tras mover los controles deslizantes manualmente.
-- **Doble Panel en Modo Libre**: Arreglado un error visual donde, al usar el botón de duplicar luz, la nueva luz aparecía repetida en la interfaz.
+- **Soporte PWA Completo**: Integración de `vite-plugin-pwa` para una mejor gestión de caché, modo offline y actualizaciones automáticas.
+- **Identidad Visual Actualizada**: Nuevos íconos de aplicación (192x192 y 512x512) diseñados para una estética premium y moderna.
+- **Hardening de Electron**: Mejora de seguridad eliminando banderas experimentales innecesarias en el proceso principal.
+
+### 🛠️ Arquitectura y Código
+
+- **Desacoplamiento Estructural**: Paso de un estado global (`window`) a una arquitectura basada en Bus de Eventos (`appEvents`), facilitando el mantenimiento y la escalabilidad.
+- **Modularización CSS**: División del archivo monolítico `style.css` en módulos especializados para una gestión de estilos más limpia.
+- **Inmutabilidad de Datos**: Los presets de iluminación ahora se clonan profundamente al cargar, evitando que cambios temporales alteren permanentemente la base de datos de lecciones.
+
+### 🔒 Seguridad y Accesibilidad
+
+- **Sanitización de Diagramas**: Refactorización de la generación de SVG para usar APIs de DOM nativas, eliminando riesgos potenciales de inyección (XSS).
+- **Mejora de Zoom**: Habilitado el escalado táctil (`user-scalable=yes`) para cumplir con estándares WCAG.
+- **Motion Reduction**: Soporte inicial para `prefers-reduced-motion` en animaciones del sistema.
 
 ---
+
+## [1.3.0] - 2026-03-01
 
 ## [1.2.0] - 2026-02-26
 
