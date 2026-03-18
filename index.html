@@ -29,7 +29,7 @@
         <div class="app-icon">💡</div>
         <div class="header-title">
           <h1>Light Studio 3D</h1>
-          <span class="header-subtitle">Iluminación Fotográfica</span>
+          <span class="header-subtitle" data-i18n="header.subtitle">Iluminación Fotográfica</span>
         </div>
       </div>
 
@@ -38,9 +38,13 @@
       </div>
 
       <div class="header-right">
-        <button class="icon-button" id="btn-help" title="Ayuda" aria-label="Mostrar ayuda">?</button>
-        <button class="icon-button" id="btn-screenshot" title="Captura de pantalla"
-          aria-label="Tomar captura de pantalla">📷</button>
+        <div class="language-switch" role="group" data-i18n-aria="header.languageLabel" aria-label="Language">
+          <button class="language-btn active" type="button" data-lang="es" aria-pressed="true">ES</button>
+          <button class="language-btn" type="button" data-lang="en" aria-pressed="false">EN</button>
+        </div>
+        <button class="icon-button" id="btn-help" data-i18n-title="header.helpTitle" data-i18n-aria="header.helpAria">?</button>
+        <button class="icon-button" id="btn-screenshot" data-i18n-title="header.screenshotTitle"
+          data-i18n-aria="header.screenshotAria">📷</button>
       </div>
     </header>
 
@@ -68,7 +72,7 @@
         <div class="goal-section">
           <div class="section-label">
             <span class="icon">🎯</span>
-            Tu Objetivo
+            <span class="label-text" data-i18n="sections.goal">Tu Objetivo</span>
           </div>
           <p id="goal-text">Crear un triángulo de luz en la mejilla del lado de sombra.</p>
         </div>
@@ -76,15 +80,32 @@
         <div class="observe-section">
           <div class="section-label">
             <span class="icon">👁️</span>
-            Qué Observar
+            <span class="label-text" data-i18n="sections.observe">Qué Observar</span>
           </div>
           <ul class="observe-list" id="observe-list"></ul>
+        </div>
+
+        <div class="practice-section">
+          <div class="section-label">
+            <span class="icon">📝</span>
+            <span class="label-text" data-i18n="sections.practice">Práctica</span>
+          </div>
+          <div class="practice-card">
+            <div class="practice-block">
+              <span class="practice-label" data-i18n="practice.task">Tarea</span>
+              <p id="task-text"></p>
+            </div>
+            <div class="practice-block">
+              <span class="practice-label" data-i18n="practice.output">Qué entregar</span>
+              <p id="output-text"></p>
+            </div>
+          </div>
         </div>
 
         <div class="diagram-section">
           <div class="section-label">
             <span class="icon">📐</span>
-            Vista Superior
+            <span class="label-text" data-i18n="sections.diagram">Vista Superior</span>
           </div>
           <div class="diagram-container">
             <svg class="diagram-svg" viewBox="0 0 200 200" id="lighting-diagram"></svg>
@@ -94,24 +115,26 @@
         <div class="lights-overview">
           <div class="section-label">
             <span class="icon">💡</span>
-            Luces en Escena
-            <span class="light-drag-hint">Arrastra en 3D</span>
+            <span class="label-text" data-i18n="sections.lights">Luces en Escena</span>
+            <span class="light-drag-hint" data-i18n="sandbox.dragHint">Arrastra en 3D</span>
           </div>
           <div class="lights-list" id="lights-overview-list"></div>
           <div class="sandbox-toolbar hidden" id="sandbox-toolbar">
-            <div class="section-label small">➕ Agregar Luz</div>
+            <div class="section-label small">
+              <span class="label-text" data-i18n="sections.addLight">Agregar Luz</span>
+            </div>
             <div class="sandbox-add-buttons">
-              <button class="sandbox-add-btn" data-type="spot" title="Foco concentrado">
-                <span class="add-icon">🔦</span> Spot
+              <button class="sandbox-add-btn" data-type="spot" data-i18n-title="sandbox.addSpotTitle" title="Foco concentrado">
+                <span class="add-icon">🔦</span> <span class="add-label" data-i18n="sandbox.addSpot">Spot</span>
               </button>
-              <button class="sandbox-add-btn" data-type="point" title="Luz puntual omnidireccional">
-                <span class="add-icon">💡</span> Point
+              <button class="sandbox-add-btn" data-type="point" data-i18n-title="sandbox.addPointTitle" title="Luz puntual omnidireccional">
+                <span class="add-icon">💡</span> <span class="add-label" data-i18n="sandbox.addPoint">Point</span>
               </button>
-              <button class="sandbox-add-btn" data-type="directional" title="Luz direccional tipo sol">
-                <span class="add-icon">☀️</span> Directional
+              <button class="sandbox-add-btn" data-type="directional" data-i18n-title="sandbox.addDirectionalTitle" title="Luz direccional tipo sol">
+                <span class="add-icon">☀️</span> <span class="add-label" data-i18n="sandbox.addDirectional">Directional</span>
               </button>
-              <button class="sandbox-add-btn" data-type="rect" title="Panel de luz suave (softbox)">
-                <span class="add-icon">🟥</span> Softbox
+              <button class="sandbox-add-btn" data-type="rect" data-i18n-title="sandbox.addRectTitle" title="Panel de luz suave (softbox)">
+                <span class="add-icon">🟥</span> <span class="add-label" data-i18n="sandbox.addRect">Softbox</span>
               </button>
             </div>
           </div>
@@ -119,13 +142,13 @@
       </div>
 
       <div class="lesson-nav">
-        <button class="nav-button prev" id="btn-prev" aria-label="Lección anterior" disabled>
+        <button class="nav-button prev" id="btn-prev" disabled>
           <span class="arrow">←</span>
-          <span>Anterior</span>
+          <span data-i18n="buttons.prev">Anterior</span>
         </button>
         <div class="lesson-dots" id="lesson-dots"></div>
-        <button class="nav-button next" id="btn-next" aria-label="Siguiente lección">
-          <span>Siguiente</span>
+        <button class="nav-button next" id="btn-next">
+          <span data-i18n="buttons.next">Siguiente</span>
           <span class="arrow">→</span>
         </button>
       </div>
@@ -135,41 +158,41 @@
     <aside class="controls-panel collapsed" id="controls-panel">
       <button class="controls-toggle" id="controls-toggle" aria-expanded="false" aria-controls="controls-content">
         <span class="toggle-icon">⚙️</span>
-        <span class="toggle-label">Controles</span>
+        <span class="toggle-label" data-i18n="sections.controls">Controles</span>
       </button>
 
       <div class="controls-content" id="controls-content">
-        <div class="drag-mode-indicator hidden" id="drag-indicator">
+        <div class="drag-mode-indicator hidden" id="drag-indicator" data-i18n="controls.dragIndicator">
           🖱️ Arrastra la luz en la escena 3D
         </div>
 
         <div class="control-section">
-          <div class="section-label small">Luz Seleccionada</div>
+          <div class="section-label small"><span data-i18n="sections.selectedLight">Luz Seleccionada</span></div>
           <div class="light-selector" id="light-selector"></div>
         </div>
 
         <div class="control-section" id="light-controls"></div>
 
         <div class="control-section">
-          <div class="section-label small">Ambiente</div>
+          <div class="section-label small"><span data-i18n="sections.ambient">Ambiente</span></div>
           <div class="control-row compact">
-            <span class="control-label" id="exposure-label">Exposición</span>
+            <span class="control-label" id="exposure-label" data-i18n="controls.exposure">Exposición</span>
             <input type="range" class="control-slider" id="exposure" min="0.5" max="2" step="0.05" value="1.2"
               aria-labelledby="exposure-label">
           </div>
         </div>
 
         <div class="control-section">
-          <div class="section-label small">🎨 Fondo</div>
+          <div class="section-label small"><span>🎨</span> <span data-i18n="sections.background">Fondo</span></div>
           <div class="bg-swatches" id="bg-swatches"></div>
           <div class="control-row compact">
-            <span class="control-label">Personalizado</span>
+            <span class="control-label" data-i18n="sections.custom">Personalizado</span>
             <input type="color" class="control-color" id="bg-custom-color" value="#080810">
           </div>
         </div>
 
         <div class="control-section">
-          <div class="section-label small">👤 Modelo</div>
+          <div class="section-label small"><span>👤</span> <span data-i18n="sections.model">Modelo</span></div>
           <div class="model-selector" id="model-selector"></div>
         </div>
       </div>
@@ -179,15 +202,15 @@
     <div class="floating-tip" id="floating-tip">
       <div class="tip-content" id="tip-content">
         <span class="tip-icon" aria-hidden="true">💡</span>
-        <span class="tip-text">Arrastra para rotar la vista • Click en luz para moverla</span>
+        <span class="tip-text" data-i18n="tips.drag">Arrastra para rotar la vista • Click en luz para moverla</span>
       </div>
-      <button class="tip-close" id="tip-close" aria-label="Cerrar tip">×</button>
+      <button class="tip-close" id="tip-close" data-i18n-aria="controls.closeTip">×</button>
     </div>
 
     <!-- Copyright Footer -->
     <footer class="copyright-footer">
-      Desarrollado por <strong>Néstor De León</strong><br>
-      Para uso libre dentro de la<br>
+      <span data-i18n="footer.by">Desarrollado por</span> <strong>Néstor De León</strong><br>
+      <span data-i18n="footer.for">Para uso libre dentro de la</span><br>
       <a href="https://pca.edu.co" target="_blank" rel="noopener">Corporación Universitaria Politécnico de la
         Costa</a><br>
       © 2026 UPCA
@@ -199,39 +222,52 @@
         <div class="onboarding-logo">
           <div class="logo-icon">💡</div>
         </div>
-        <h2>Light Studio 3D</h2>
-        <p class="subtitle">Corporación Universitaria Politécnico de la Costa</p>
-        <p>Aprende iluminación fotográfica de forma interactiva. Visualiza en 3D cómo diferentes setups de luz afectan a
+        <h2 data-i18n="onboarding.title">Light Studio 3D</h2>
+        <p class="subtitle" data-i18n="onboarding.subtitle">Corporación Universitaria Politécnico de la Costa</p>
+        <p data-i18n="onboarding.intro">Aprende iluminación fotográfica de forma interactiva. Visualiza en 3D cómo diferentes setups de luz afectan a
           un retrato.</p>
+
+        <div class="overview-section">
+          <div class="section-label small">
+            <span class="icon">📘</span>
+            <span data-i18n="overview.title">Sobre este laboratorio</span>
+          </div>
+          <p data-i18n="overview.description">Light Studio 3D es un laboratorio web 3D para aprender iluminación fotográfica mediante metas guiadas, observación comparativa y práctica virtual-a-real.</p>
+          <ul class="overview-list">
+            <li data-i18n="overview.points.0">Explora setups clásicos antes de pasar al estudio físico.</li>
+            <li data-i18n="overview.points.1">Usa objetivos breves y tareas concretas para enfocar la práctica.</li>
+            <li data-i18n="overview.points.2">Compara la escena 3D con una réplica real para consolidar el aprendizaje.</li>
+          </ul>
+        </div>
 
         <div class="onboarding-features">
           <div class="feature">
             <span class="feature-icon">🎨</span>
-            <span>8 Técnicas</span>
+            <span data-i18n="features.0.label">8 Técnicas</span>
           </div>
           <div class="feature">
             <span class="feature-icon">🖱️</span>
-            <span>Interactivo</span>
+            <span data-i18n="features.1.label">Interactivo</span>
           </div>
           <div class="feature">
             <span class="feature-icon">📚</span>
-            <span>Educativo</span>
+            <span data-i18n="features.2.label">Educativo</span>
           </div>
         </div>
 
-        <button class="cta-button" id="btn-start" aria-label="Comenzar tutorial">
-          Comenzar
+        <button class="cta-button" id="btn-start">
+          <span data-i18n="buttons.start">Comenzar</span>
           <span class="arrow" aria-hidden="true">→</span>
         </button>
 
-        <p class="onboarding-hint">Usa ← → para navegar entre lecciones</p>
+        <p class="onboarding-hint" data-i18n="onboarding.hint">Usa ← → para navegar entre lecciones</p>
       </div>
     </div>
 
     <!-- Loading -->
     <div id="loading" class="loading">
       <div class="loading-spinner"></div>
-      <p>Preparando el estudio...</p>
+      <p data-i18n="loader">Preparando el estudio...</p>
     </div>
   </div>
 

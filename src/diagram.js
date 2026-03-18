@@ -1,6 +1,7 @@
 import { CONFIG } from './config.js';
+import { getLightTypeLabel } from './localization.js';
 
-export function renderDiagram(preset, svgElement) {
+export function renderDiagram(preset, svgElement, lang = 'es') {
     if (!svgElement) return;
 
     // Remove existing children
@@ -45,7 +46,7 @@ export function renderDiagram(preset, svgElement) {
     // --- Legend ---
     const uniqueTypes = [...new Set(preset.lights.map(l => l.type))];
     uniqueTypes.forEach((type, i) => {
-        const textLabel = CONFIG.LABELS[type] || type;
+        const textLabel = getLightTypeLabel(lang, type);
         const color = CONFIG.COLORS[type] || '#fff';
         const yCircle = 15 + i * 18;
         const yText = 18 + i * 18;

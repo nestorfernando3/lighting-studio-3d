@@ -31,3 +31,6 @@
   text-decoration: underline;
 }
 
+body.embed-mode .copyright-footer {
+  display: none;
+}

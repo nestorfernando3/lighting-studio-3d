@@ -58,6 +58,14 @@ export class LessonNavigator {
         });
     }
 
+    updatePracticeSection(preset) {
+        const task = document.getElementById('task-text');
+        const output = document.getElementById('output-text');
+
+        if (task) task.textContent = preset.practice?.task || '';
+        if (output) output.textContent = preset.practice?.expectedOutput || '';
+    }
+
     updateNavigation(index) {
         const prevBtn = document.getElementById('btn-prev');
         const nextBtn = document.getElementById('btn-next');

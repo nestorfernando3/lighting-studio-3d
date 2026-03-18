@@ -139,6 +139,7 @@
 /* Sections */
 .goal-section,
 .observe-section,
+.practice-section,
 .diagram-section,
 .lights-overview {
   padding: var(--space-4) var(--space-5);
@@ -172,6 +173,76 @@
   line-height: 1.55;
   color: var(--text-primary);
   font-weight: 450;
+}
+
+/* Practice Block */
+.practice-card {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--glass-bg-light);
+  border: 1px solid var(--glass-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.practice-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.practice-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--upca-gold);
+}
+
+.practice-block p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-primary);
+}
+
+/* Lab Overview */
+.overview-section {
+  margin-top: var(--space-2);
+  padding: var(--space-4);
+  background: linear-gradient(180deg, rgba(196, 30, 58, 0.08), rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--glass-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.overview-section > p {
+  margin-bottom: var(--space-3);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.overview-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.overview-list li {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  padding-left: 14px;
+  position: relative;
+}
+
+.overview-list li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--upca-gold);
 }
 
 /* Observe List */
@@ -391,4 +462,3 @@
   background: var(--text-tertiary);
   transform: scale(1.2);
 }
-

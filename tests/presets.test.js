@@ -78,4 +78,14 @@ describe('presets.js', () => {
         const sandbox = getPreset('sandbox');
         expect(sandbox.isSandbox).toBe(true);
     });
+
+    it('localized presets expose translated text fields', () => {
+        const preset = getPreset('rembrandt', 'en');
+        expect(typeof preset.name).toBe('string');
+        expect(typeof preset.goal).toBe('string');
+        expect(Array.isArray(preset.whatToObserve)).toBe(true);
+        expect(typeof preset.whatToObserve[0]).toBe('string');
+        expect(typeof preset.practice.task).toBe('string');
+        expect(typeof preset.lights[0].name).toBe('string');
+    });
 });

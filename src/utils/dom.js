@@ -17,7 +17,10 @@ export function createElement(tag, attrs = {}, children = []) {
         if (key === 'className') {
             el.className = value;
         } else if (key.startsWith('data-')) {
-            el.dataset[key.slice(5)] = value;
+            const datasetKey = key
+                .slice(5)
+                .replace(/-([a-z])/g, (_, char) => char.toUpperCase());
+            el.dataset[datasetKey] = value;
         } else if (key.startsWith('aria-')) {
             el.setAttribute(key, value);
         } else if (key === 'style' && typeof value === 'object') {

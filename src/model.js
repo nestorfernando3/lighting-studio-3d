@@ -1,12 +1,13 @@
-import * as THREE from 'three';
+import { Group, MeshStandardMaterial, Mesh, CylinderGeometry, SphereGeometry, Color, BackSide, CircleGeometry, AmbientLight, FogExp2, Vector2 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { appEvents } from './utils/events.js';
+import { DEFAULT_LANGUAGE, normalizeLanguage } from './runtime.js';
 
 // ====== Model registry — add more GLB models here ======
 export const MODEL_REGISTRY = [
     {
         id: 'head',
-        name: 'Rostro Humano',
+        name: { es: 'Rostro Humano', en: 'Human Face' },
         icon: '🧑',
         path: './models/head.glb',
         scale: 0.26,
@@ -14,22 +15,22 @@ export const MODEL_REGISTRY = [
         skinColor: 0xd4a574,
         hideBase: false,
         preserveMaterial: false,
-        description: 'Modelo escaneo 3D de rostro humano'
+        description: { es: 'Modelo escaneo 3D de rostro humano', en: '3D scanned human face model' }
     },
     {
         id: 'marble_bust',
-        name: 'Busto Mármol',
+        name: { es: 'Busto Mármol', en: 'Marble Bust' },
         icon: '🏛️',
         path: './models/marble_bust_01/marble_bust_01_1k.gltf',
         scale: 4.0,
         positionY: 0.0,
         hideBase: true,
         preserveMaterial: true,
-        description: 'Busto clásico de mármol — Poly Haven CC0'
+        description: { es: 'Busto clásico de mármol — Poly Haven CC0', en: 'Classic marble bust - Poly Haven CC0' }
     },
     {
         id: 'nefertiti',
-        name: 'Nefertiti',
+        name: { es: 'Nefertiti', en: 'Nefertiti' },
         icon: '👑',
         path: './models/female_head.glb',
         scale: 0.07,
@@ -37,38 +38,60 @@ export const MODEL_REGISTRY = [
         hideBase: true,
         preserveMaterial: true,
         materialBoost: true,
-        description: 'Busto de Nefertiti'
+        description: { es: 'Busto de Nefertiti', en: 'Nefertiti bust' }
     },
     {
         id: 'croissant',
-        name: 'Croissant',
+        name: { es: 'Croissant', en: 'Croissant' },
         icon: '🥐',
         path: './models/croissant/croissant_1k.gltf',
         scale: 12.0,
         positionY: 1.05,
         hideBase: false,
         preserveMaterial: true,
-        description: 'Croissant — iluminación de producto / Poly Haven CC0'
+        description: { es: 'Croissant — iluminación de producto / Poly Haven CC0', en: 'Croissant - product lighting / Poly Haven CC0' }
     },
     {
         id: 'duck',
-        name: 'Pato de Goma',
+        name: { es: 'Pato de Goma', en: 'Rubber Duck' },
         icon: '🦆',
         path: './models/rubber_duck_toy/rubber_duck_toy_1k.gltf',
         scale: 4.5,
         positionY: 1.05,
         hideBase: false,
         preserveMaterial: true,
-        description: 'Pato de goma — iluminación de producto / Poly Haven CC0'
+        description: { es: 'Pato de goma — iluminación de producto / Poly Haven CC0', en: 'Rubber duck - product lighting / Poly Haven CC0' }
     }
 ];
+
+const matNormalScale = new Vector2(0.8, 0.8);
+
+function localizeValue(value, lang) {
+    const normalized = normalizeLanguage(lang);
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+        return value[normalized] || value[DEFAULT_LANGUAGE] || value.en || value.es || value;
+    }
+    return value;
+}
+
+function localizeModelEntry(model, lang) {
+    return {
+        ...model,
+        name: localizeValue(model.name, lang),
+        description: localizeValue(model.description, lang)
+    };
+}
+
+export function getModelRegistry(lang = null) {
+    return lang ? MODEL_REGISTRY.map(model => localizeModelEntry(model, lang)) : MODEL_REGISTRY;
+}
 
 
 class ModelManager {
     constructor(scene) {
         this.scene = scene;
         this.loader = new GLTFLoader();
-        this.modelGroup = new THREE.Group();
+        this.modelGroup = new Group();
         this.currentHead = null;
         this.currentModelId = null;
         this.isLoading = false;
@@ -81,26 +104,26 @@ class ModelManager {
     }
 
     createBase() {
-        const baseMat = new THREE.MeshStandardMaterial({
+        const baseMat = new MeshStandardMaterial({
             color: 0x1a1a2e,
             roughness: 0.9,
             metalness: 0.1
         });
-        this.baseDisk = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.6, 0.7, 0.25, 32),
+        this.baseDisk = new Mesh(
+            new CylinderGeometry(0.6, 0.7, 0.25, 32),
             baseMat
         );
         this.baseDisk.position.y = 0.125;
         this.baseDisk.receiveShadow = true;
         this.modelGroup.add(this.baseDisk);
 
-        const bustMat = new THREE.MeshStandardMaterial({
+        const bustMat = new MeshStandardMaterial({
             color: 0x2c3e50,
             roughness: 0.7,
             metalness: 0.1
         });
-        this.bustCylinder = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.35, 0.5, 0.8, 24),
+        this.bustCylinder = new Mesh(
+            new CylinderGeometry(0.35, 0.5, 0.8, 24),
             bustMat
         );
         this.bustCylinder.position.y = 0.65;
@@ -137,9 +160,9 @@ class ModelManager {
         }
 
         // Placeholder wireframe while loading
-        const placeholder = new THREE.Mesh(
-            new THREE.SphereGeometry(0.4, 16, 16),
-            new THREE.MeshStandardMaterial({ color: 0x444455, wireframe: true })
+        const placeholder = new Mesh(
+            new SphereGeometry(0.4, 16, 16),
+            new MeshStandardMaterial({ color: 0x444455, wireframe: true })
         );
         placeholder.position.y = config.positionY;
         placeholder.name = 'placeholder';
@@ -168,13 +191,13 @@ class ModelManager {
 
                         if (!config.preserveMaterial) {
                             const orig = child.material;
-                            child.material = new THREE.MeshStandardMaterial({
+                            child.material = new MeshStandardMaterial({
                                 color: config.skinColor,
                                 roughness: 0.5,
                                 metalness: 0.0,
                                 map: orig?.map || null,
                                 normalMap: orig?.normalMap || null,
-                                normalScale: new THREE.Vector2(0.8, 0.8)
+                                normalScale: matNormalScale
                             });
                         } else if (config.materialBoost) {
                             // Universal brightness boost — works on any material type
@@ -186,7 +209,7 @@ class ModelManager {
                                 if ('roughness' in mat) mat.roughness = 0.25;
                                 // Add emissive if supported
                                 if ('emissive' in mat) {
-                                    mat.emissive = new THREE.Color(0x261808);
+                                    mat.emissive = new Color(0x261808);
                                     mat.emissiveIntensity = 0.6;
                                 }
                                 // Boost all diffuse colors by lightening
@@ -256,15 +279,15 @@ export function createEnvironment(scene) {
 
     // Smooth Photography Cyc Wall (curved backdrop)
     // We create a curved plane using CylinderGeometry (inside out)
-    const cycGeo = new THREE.CylinderGeometry(15, 15, 20, 48, 1, true, Math.PI * 0.5, Math.PI);
-    const cycMat = new THREE.MeshStandardMaterial({
+    const cycGeo = new CylinderGeometry(15, 15, 20, 48, 1, true, Math.PI * 0.5, Math.PI);
+    const cycMat = new MeshStandardMaterial({
         color: defaultColor,
         roughness: envRoughness,
         metalness: 0.05,
-        side: THREE.BackSide // Render the inside of the cylinder
+        side: BackSide // Render the inside of the cylinder
     });
 
-    const backdrop = new THREE.Mesh(cycGeo, cycMat);
+    const backdrop = new Mesh(cycGeo, cycMat);
     // Position it so the back of the cylinder is behind the camera target
     // and the floor of the cylinder is almost at y=0, then we blend it with the ground
     backdrop.position.set(0, 5, 5);
@@ -272,20 +295,20 @@ export function createEnvironment(scene) {
     scene.add(backdrop);
 
     // Ground (seamless with cyc wall)
-    const groundGeo = new THREE.CircleGeometry(15, 64);
-    const groundMat = new THREE.MeshStandardMaterial({
+    const groundGeo = new CircleGeometry(15, 64);
+    const groundMat = new MeshStandardMaterial({
         color: defaultColor,
         roughness: envRoughness,
         metalness: 0.05
     });
-    const ground = new THREE.Mesh(groundGeo, groundMat);
+    const ground = new Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = 0;
     ground.receiveShadow = true;
     scene.add(ground);
 
     // Ambient light
-    const ambientLight = new THREE.AmbientLight(0x404060, 0.5);
+    const ambientLight = new AmbientLight(0x404060, 0.5);
     scene.add(ambientLight);
 
     return { ground, backdrop, ambientLight };
@@ -293,19 +316,27 @@ export function createEnvironment(scene) {
 
 // Background color presets for color testing
 export const BACKGROUND_PRESETS = [
-    { name: 'Negro', color: '#080810' },
-    { name: 'Gris 18%', color: '#737373' },
-    { name: 'Blanco', color: '#e0e0e0' },
-    { name: 'Azul', color: '#1a3a5c' },
-    { name: 'Verde', color: '#1a4a2a' },
-    { name: 'Rojo', color: '#5c1a1a' }
+    { name: { es: 'Negro', en: 'Black' }, color: '#080810' },
+    { name: { es: 'Gris 18%', en: '18% Gray' }, color: '#737373' },
+    { name: { es: 'Blanco', en: 'White' }, color: '#e0e0e0' },
+    { name: { es: 'Azul', en: 'Blue' }, color: '#1a3a5c' },
+    { name: { es: 'Verde', en: 'Green' }, color: '#1a4a2a' },
+    { name: { es: 'Rojo', en: 'Red' }, color: '#5c1a1a' }
 ];
+
+export function getBackgroundPresets(lang = null) {
+    if (!lang) return BACKGROUND_PRESETS;
+    return BACKGROUND_PRESETS.map(preset => ({
+        ...preset,
+        name: localizeValue(preset.name, lang)
+    }));
+}
 
 // Change backdrop and scene background color
 export function setBackdropColor(scene, environment, colorHex) {
-    const color = new THREE.Color(colorHex);
+    const color = new Color(colorHex);
     scene.background = color;
-    scene.fog = new THREE.FogExp2(color, 0.04);
+    scene.fog = new FogExp2(color, 0.04);
     if (environment.backdrop) {
         environment.backdrop.material.color.set(color);
     }

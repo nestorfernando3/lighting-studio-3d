@@ -3,16 +3,26 @@
  * adding, removing and listing lights in the sandbox preset.
  */
 import { createElement, clearChildren } from '../utils/dom.js';
+import { getAppCopy } from '../localization.js';
+
+function localizeValue(value, lang) {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+        return value[lang] || value.es || value.en || '';
+    }
+    return value || '';
+}
 
 export class SandboxManager {
     /**
      * @param {import('../lighting.js').LightingSystem} lightingSystem
      * @param {Function} getCurrentPreset - returns current preset object
+     * @param {Function} getLanguage - returns current UI language
      * @param {Function} onLightsChanged - callback after add/remove
      */
-    constructor(lightingSystem, getCurrentPreset, onLightsChanged) {
+    constructor(lightingSystem, getCurrentPreset, getLanguage, onLightsChanged) {
         this.lightingSystem = lightingSystem;
         this.getCurrentPreset = getCurrentPreset;
+        this.getLanguage = getLanguage;
         this.onLightsChanged = onLightsChanged;
     }
 
@@ -39,12 +49,12 @@ export class SandboxManager {
         this.onLightsChanged(newConfig);
     }
 
-    removeSandboxLight(name) {
-        const removed = this.lightingSystem.removeLight(name);
+    removeSandboxLight(lightId) {
+        const removed = this.lightingSystem.removeLight(lightId);
         if (!removed) return;
 
         const preset = this.getCurrentPreset();
-        preset.lights = preset.lights.filter(l => l.name !== name);
+        preset.lights = preset.lights.filter(l => l.id !== lightId);
         this.onLightsChanged(null);
     }
 
@@ -59,15 +69,19 @@ export class SandboxManager {
 
         clearChildren(container);
         const preset = this.getCurrentPreset();
+        const copy = getAppCopy(this.getLanguage());
 
         preset.lights.forEach(light => {
+            const name = localizeValue(light.name, this.getLanguage());
+            const role = localizeValue(light.role, this.getLanguage());
+
             const dotEl = createElement('div', {
                 className: 'light-dot',
                 style: { backgroundColor: light.color, color: light.color }
             });
 
-            const nameEl = createElement('div', { className: 'light-item-name' }, [light.name]);
-            const roleEl = createElement('div', { className: 'light-item-role' }, [light.role]);
+            const nameEl = createElement('div', { className: 'light-item-name' }, [name]);
+            const roleEl = createElement('div', { className: 'light-item-role' }, [role]);
             const infoEl = createElement('div', { className: 'light-item-info' }, [nameEl, roleEl]);
 
             const children = [dotEl, infoEl];
@@ -75,19 +89,19 @@ export class SandboxManager {
             if (isSandbox) {
                 const deleteBtn = createElement('button', {
                     className: 'light-delete-btn',
-                    title: 'Eliminar luz',
-                    'aria-label': 'Eliminar luz'
+                    title: copy.sandbox.removeTitle,
+                    'aria-label': copy.sandbox.removeAria
                 }, ['🗑️']);
                 deleteBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    this.removeSandboxLight(light.name);
+                    this.removeSandboxLight(light.id);
                 });
                 children.push(deleteBtn);
             }
 
             const item = createElement('div', {
                 className: 'light-item',
-                'data-lightName': light.name
+                'data-light-id': light.id
             }, children);
 
             item.addEventListener('click', (e) => {

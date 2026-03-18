@@ -1,22 +1,28 @@
-export function setupOnboarding(onStartCallback) {
+export function setupOnboarding(onStartCallback, { skipAutoStart = false } = {}) {
     const overlay = document.getElementById('onboarding');
     const startBtn = document.getElementById('btn-start');
     const tipClose = document.getElementById('tip-close');
 
-    const hasSeenOnboarding = localStorage.getItem('lightStudioOnboardingUPCA');
+    const hasSeenOnboarding = typeof localStorage !== 'undefined'
+        ? localStorage.getItem('lightStudioOnboardingUPCA')
+        : null;
 
-    if (hasSeenOnboarding) {
-        overlay.classList.add('hidden');
+    if (skipAutoStart) {
+        overlay?.classList.add('hidden');
+    } else if (hasSeenOnboarding) {
+        overlay?.classList.add('hidden');
         if (onStartCallback) onStartCallback();
     }
 
     startBtn?.addEventListener('click', () => {
-        overlay.classList.add('hidden');
-        localStorage.setItem('lightStudioOnboardingUPCA', 'true');
+        overlay?.classList.add('hidden');
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('lightStudioOnboardingUPCA', 'true');
+        }
         if (onStartCallback) onStartCallback();
     });
 
     tipClose?.addEventListener('click', () => {
-        document.getElementById('floating-tip').classList.add('hidden');
+        document.getElementById('floating-tip')?.classList.add('hidden');
     });
 }

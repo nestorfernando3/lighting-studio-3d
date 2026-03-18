@@ -1,18 +1,23 @@
-import * as THREE from 'three';
+import { Scene, Color, FogExp2, PerspectiveCamera, WebGLRenderer, PCFSoftShadowMap, ACESFilmicToneMapping, SRGBColorSpace } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { createPortraitModel, createEnvironment } from './src/model.js';
 import { LightingSystem } from './src/lighting.js';
 import { UI } from './src/ui.js';
 import { appEvents } from './src/utils/events.js';
+import { parseRuntimeConfig } from './src/runtime.js';
+
+const runtimeConfig = parseRuntimeConfig();
+document.documentElement.lang = runtimeConfig.language;
+document.body.classList.toggle('embed-mode', runtimeConfig.embed);
 
 // Scene
 const canvas = document.getElementById('scene-canvas');
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x080810);
-scene.fog = new THREE.FogExp2(0x080810, 0.04);
+const scene = new Scene();
+scene.background = new Color(0x080810);
+scene.fog = new FogExp2(0x080810, 0.04);
 
 // Camera
-const camera = new THREE.PerspectiveCamera(
+const camera = new PerspectiveCamera(
     40,
     window.innerWidth / window.innerHeight,
     0.1,
@@ -22,7 +27,7 @@ camera.position.set(2.5, 2.2, 5.5);
 camera.lookAt(0, 1.65, 0);
 
 // Renderer
-const renderer = new THREE.WebGLRenderer({
+const renderer = new WebGLRenderer({
     canvas,
     antialias: true,
     alpha: true
@@ -30,10 +35,10 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.shadowMap.type = PCFSoftShadowMap;
+renderer.toneMapping = ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.5;
-renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.outputColorSpace = SRGBColorSpace;
 
 // Orbit controls
 const controls = new OrbitControls(camera, canvas);
@@ -97,7 +102,7 @@ lightingSystem.onLightDragEnd = (lightName) => {
 };
 
 // UI - pass lighting system for drag updates
-const ui = new UI(lightingSystem, scene, renderer, environment);
+const ui = new UI(lightingSystem, scene, renderer, environment, runtimeConfig);
 
 // Connect drag events to UI updates
 lightingSystem.onLightDrag = (lightName, position) => {

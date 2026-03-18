@@ -131,6 +131,37 @@
   }
 }
 
+body.embed-mode .progress-bar {
+  top: 49px;
+}
+
+body.embed-mode .teach-panel {
+  top: 56px;
+  bottom: var(--space-3);
+}
+
+body.embed-mode .controls-panel {
+  top: 56px;
+}
+
+body.embed-mode .floating-tip,
+body.embed-mode .copyright-footer {
+  display: none !important;
+}
+
+@media (max-width: 700px) {
+  body.embed-mode .teach-panel {
+    top: auto;
+    bottom: 0;
+    height: 42vh;
+  }
+
+  body.embed-mode .controls-panel {
+    top: auto;
+    bottom: 0;
+  }
+}
+
 /* Utility */
 
 /* Landscape Mobile Fixes */

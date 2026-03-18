@@ -4,35 +4,38 @@
  */
 import { createElement, clearChildren, bindSlider } from '../utils/dom.js';
 import { appEvents } from '../utils/events.js';
+import { getAppCopy, getLightTypeLabel } from '../localization.js';
 
 export class LightControls {
     /**
      * @param {import('../lighting.js').LightingSystem} lightingSystem
      * @param {Function} getCurrentPreset - returns current preset object
+     * @param {Function} getLanguage - returns current UI language
      * @param {Function} onDiagramUpdate - callback to re-render diagram
      */
-    constructor(lightingSystem, getCurrentPreset, onDiagramUpdate) {
+    constructor(lightingSystem, getCurrentPreset, getLanguage, onDiagramUpdate) {
         this.lightingSystem = lightingSystem;
         this.getCurrentPreset = getCurrentPreset;
+        this.getLanguage = getLanguage;
         this.onDiagramUpdate = onDiagramUpdate;
-        this.selectedLightName = null;
+        this.selectedLightId = null;
     }
 
     // ── Public API ────────────────────────────────────────────────────────────
 
     /** Select a light: updates 3D highlight, panel, and controls */
     selectLight(light) {
-        this.selectedLightName = light.name;
+        this.selectedLightId = light.id;
 
         // Update visual selection in lights list
         document.querySelectorAll('.light-item').forEach(item => {
-            item.classList.toggle('selected', item.dataset.lightName === light.name);
+            item.classList.toggle('selected', item.dataset.lightId === light.id);
         });
 
         // Highlight in 3D scene
         const preset = this.getCurrentPreset();
         preset.lights.forEach(l => {
-            this.lightingSystem.highlightLight(l.name, l.name === light.name);
+            this.lightingSystem.highlightLight(l.id, l.id === light.id);
         });
 
         // Show controls panel
@@ -40,12 +43,12 @@ export class LightControls {
         document.getElementById('drag-indicator')?.classList.remove('hidden');
 
         this.renderLightControls(light);
-        this.renderLightSelector(preset, light.name);
+        this.renderLightSelector(preset, light.id);
     }
 
     /** Sync slider values when the light is dragged in 3D or reset */
-    onLightDragged(lightName, position) {
-        if (this.selectedLightName === lightName) {
+    onLightDragged(lightId, position) {
+        if (this.selectedLightId === lightId) {
             const setVal = (id, val) => {
                 const el = document.getElementById(id);
                 const valEl = document.getElementById(id.replace('ctrl', 'val'));
@@ -59,7 +62,7 @@ export class LightControls {
         }
 
         // Keep preset data in sync for diagram updates
-        const lightConfig = this.getCurrentPreset().lights.find(l => l.name === lightName);
+        const lightConfig = this.getCurrentPreset().lights.find(l => l.id === lightId);
         if (lightConfig) {
             lightConfig.position.x = position.x;
             if (position.y != null) lightConfig.position.y = position.y;
@@ -69,21 +72,24 @@ export class LightControls {
     }
 
     /** Render the light-type pill selector */
-    renderLightSelector(preset, selectedName = null) {
+    renderLightSelector(preset, selectedId = null) {
         const container = document.getElementById('light-selector');
         if (!container) return;
 
         clearChildren(container);
+        const lang = this.getLanguage();
 
         preset.lights.forEach(light => {
+            const typeLabel = getLightTypeLabel(lang, light.freeLightType || light.type);
             const dot = createElement('span', {
                 className: 'light-select-dot',
                 style: { backgroundColor: light.color }
             });
 
             const btn = createElement('button', {
-                className: 'light-select-btn' + (light.name === selectedName ? ' active' : '')
-            }, [dot, ` ${light.type.toUpperCase()}`]);
+                className: 'light-select-btn' + (light.id === selectedId ? ' active' : ''),
+                'data-light-id': light.id
+            }, [dot, ` ${typeLabel}`]);
 
             btn.addEventListener('click', () => this.selectLight(light));
             container.appendChild(btn);
@@ -96,35 +102,37 @@ export class LightControls {
         if (!container) return;
 
         clearChildren(container);
+        const copy = getAppCopy(this.getLanguage());
+        const labels = copy.lightControls;
 
         // -- Intensity row --
-        container.appendChild(this._makeSliderRow('Intensidad', 'intensity', 0, 5, 0.1, light.intensity));
+        container.appendChild(this._makeSliderRow(labels.intensity, 'intensity', 0, 5, 0.1, light.intensity));
 
         // -- Color row --
-        container.appendChild(this._makeColorRow('Color', 'color', light.color));
+        container.appendChild(this._makeColorRow(labels.color, 'color', light.color));
 
         // -- Position rows --
-        container.appendChild(this._makeSliderRow('Pos X', 'x', -5, 5, 0.1, light.position.x));
-        container.appendChild(this._makeSliderRow('Altura Y', 'y', 0, 6, 0.1, light.position.y));
-        container.appendChild(this._makeSliderRow('Pos Z', 'z', -5, 5, 0.1, light.position.z));
+        container.appendChild(this._makeSliderRow(labels.posX, 'x', -5, 5, 0.1, light.position.x));
+        container.appendChild(this._makeSliderRow(labels.posY, 'y', 0, 6, 0.1, light.position.y));
+        container.appendChild(this._makeSliderRow(labels.posZ, 'z', -5, 5, 0.1, light.position.z));
 
         // -- Spot cone (sandbox spot only) --
         if (light.type === 'key' && light.freeLight) {
-            container.appendChild(this._makeSliderRow('Cono °', 'cone', 5, 90, 1, 45, 0));
+            container.appendChild(this._makeSliderRow(labels.cone, 'cone', 5, 90, 1, light.coneAngle ?? 45, 0));
         }
 
         // -- RectAreaLight dimensions --
         if (light.type === 'rect') {
-            container.appendChild(this._makeSliderRow('Ancho', 'width', 0.5, 5, 0.1, 2));
-            container.appendChild(this._makeSliderRow('Alto', 'height', 0.5, 4, 0.1, 1.5));
+            container.appendChild(this._makeSliderRow(labels.width, 'width', 0.5, 5, 0.1, light.width ?? 2));
+            container.appendChild(this._makeSliderRow(labels.height, 'height', 0.5, 4, 0.1, light.height ?? 1.5));
         }
 
         // -- Action buttons row --
         const resetBtn = createElement('button', {
             className: 'reset-light-btn',
             id: 'btn-reset-light',
-            title: 'Resetear posición original'
-        }, ['⟳ Resetear Posición']);
+            title: labels.reset
+        }, ['⟳', ` ${labels.reset}`]);
 
         const resetRow = createElement('div', { className: 'control-row reset-row' }, [resetBtn]);
 
@@ -133,14 +141,14 @@ export class LightControls {
             const dupBtn = createElement('button', {
                 className: 'dup-light-btn',
                 id: 'btn-dup-light',
-                title: 'Duplicar luz'
-            }, ['⧉']);
+                title: labels.duplicate
+            }, ['⧉', ` ${labels.duplicate}`]);
             resetRow.appendChild(dupBtn);
         }
 
         container.appendChild(resetRow);
 
-        this._bindControlEvents(light.name);
+        this._bindControlEvents(light.id);
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
@@ -182,51 +190,60 @@ export class LightControls {
     }
 
     /** Attach reactive input events to all controls */
-    _bindControlEvents(lightName) {
+    _bindControlEvents(lightId) {
         const preset = this.getCurrentPreset();
 
         const updatePos = (axis) => (val) => {
-            this.lightingSystem.updateLightPosition(lightName, axis, val);
-            const cfg = preset.lights.find(l => l.name === lightName);
+            this.lightingSystem.updateLightPosition(lightId, axis, val);
+            const cfg = preset.lights.find(l => l.id === lightId);
             if (cfg) cfg.position[axis] = val;
             this.onDiagramUpdate();
         };
 
-        bindSlider('ctrl-intensity', (val) => this.lightingSystem.updateLightIntensity(lightName, val));
+        bindSlider('ctrl-intensity', (val) => this.lightingSystem.updateLightIntensity(lightId, val));
         bindSlider('ctrl-x', updatePos('x'));
         bindSlider('ctrl-y', updatePos('y'));
         bindSlider('ctrl-z', updatePos('z'));
 
         // Color picker
         document.getElementById('ctrl-color')?.addEventListener('input', (e) => {
-            this.lightingSystem.updateLightColor(lightName, e.target.value);
-            const cfg = preset.lights.find(l => l.name === lightName);
+            this.lightingSystem.updateLightColor(lightId, e.target.value);
+            const cfg = preset.lights.find(l => l.id === lightId);
             if (cfg) cfg.color = e.target.value;
         });
 
         // Spot cone angle
         bindSlider('ctrl-cone', (angleDeg) => {
-            const light = this.lightingSystem.lightObjects.get(lightName);
-            if (light?.isSpotLight) light.angle = (angleDeg * Math.PI) / 180;
+            const light = this.lightingSystem.lightObjects.get(lightId);
+            if (light?.isSpotLight) {
+                light.angle = (angleDeg * Math.PI) / 180;
+                if (light.userData.config) light.userData.config.coneAngle = angleDeg;
+            }
             appEvents.emit('requestRender');
         }, 0);
 
         // RectAreaLight dimensions
         bindSlider('ctrl-width', (v) => {
-            const light = this.lightingSystem.lightObjects.get(lightName);
-            if (light?.isRectAreaLight) light.width = v;
+            const light = this.lightingSystem.lightObjects.get(lightId);
+            if (light?.isRectAreaLight) {
+                light.width = v;
+                if (light.userData.config) light.userData.config.width = v;
+            }
             appEvents.emit('requestRender');
         });
         bindSlider('ctrl-height', (v) => {
-            const light = this.lightingSystem.lightObjects.get(lightName);
-            if (light?.isRectAreaLight) light.height = v;
+            const light = this.lightingSystem.lightObjects.get(lightId);
+            if (light?.isRectAreaLight) {
+                light.height = v;
+                if (light.userData.config) light.userData.config.height = v;
+            }
             appEvents.emit('requestRender');
         });
 
         // Reset position button
         document.getElementById('btn-reset-light')?.addEventListener('click', () => {
-            this.lightingSystem.resetLightPosition(lightName);
-            const cfg = preset.lights.find(l => l.name === lightName);
+            this.lightingSystem.resetLightPosition(lightId);
+            const cfg = preset.lights.find(l => l.id === lightId);
             if (cfg) {
                 this.renderLightControls(cfg);
                 this.onDiagramUpdate();
@@ -235,7 +252,7 @@ export class LightControls {
 
         // Duplicate light button (sandbox only)
         document.getElementById('btn-dup-light')?.addEventListener('click', () => {
-            const newConfig = this.lightingSystem.duplicateLight(lightName);
+            const newConfig = this.lightingSystem.duplicateLight(lightId);
             if (newConfig) {
                 preset.lights.push(newConfig);
                 // Signal that a new light was added

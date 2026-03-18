@@ -61,6 +61,11 @@
   transform: scale(1.1);
 }
 
+body.embed-mode .floating-tip,
+body.embed-mode .onboarding-overlay {
+  display: none !important;
+}
+
 /* ========== Onboarding ========== */
 .onboarding-overlay {
   position: fixed;
@@ -167,6 +172,19 @@
   color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: var(--space-6);
+}
+
+.onboarding-card .overview-section {
+  text-align: left;
+  margin-bottom: var(--space-5);
+}
+
+.onboarding-card .overview-section > p {
+  margin-bottom: var(--space-3);
+}
+
+.onboarding-card .overview-list li {
+  color: var(--text-secondary);
 }
 
 .onboarding-features {
@@ -280,4 +298,3 @@
   color: var(--text-tertiary);
   font-weight: 450;
 }
-

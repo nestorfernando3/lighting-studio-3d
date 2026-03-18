@@ -4,6 +4,16 @@ Todos los cambios notables de este proyecto serán documentados aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
+## [Unreleased]
+
+### 🌐 Go-Lab y versión pública bilingüe
+
+- La interfaz pública ahora soporta español e inglés con persistencia de idioma y selección por URL (`?lang=es|en`).
+- Cada lección incluye una capa ligera de trabajo guiado con objetivo, observaciones, tarea y resultado esperado.
+- Se añadió modo embebible para Go-Lab / ILS con parámetros `?embed=1` y `?lesson=<preset-id>`.
+- La versión pública ahora muestra una descripción breve reutilizable del laboratorio para su catálogo en Go-Lab.
+- El onboarding y el chrome no esencial se simplificaron en modo embed para ahorrar espacio vertical y facilitar el uso en aula.
+
 ## [1.4.1] - 2026-03-13
 
 ### 🚀 Optimización Profunda y Seguridad (Fase 2)
@@ -16,6 +26,7 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 - **Optimización de Interacción 3D**: La actualización de geometrías de las líneas guía durante el *drag* ahora reutiliza buffers nativos (`Float32Array.setXYZ`) eliminando los picos de Garbage Collector y tirones de FPS.
 - **Estabilidad PWA**: La caché local ahora incluye explícitamente contenedores de malla `.bin` y `.gltf` asegurando un encendido verdaderamente offline inclusive en el caché de Workbox.
 - **Seguridad DOM**: Se sustituyó todo uso de `innerHTML = ''` implícito en favor de utilidades seguras del DOM y se previno el borrado destructivo del Contexto WebGL al recargar el lienzo de renderizado.
+- **Tree-Shaking y Bundle Size**: Refactorización completa de dependencias de `three.js` a importaciones nominativas, reduciendo significativamente el peso final de la aplicación.
 
 ## [1.4.0] - 2026-03-13
 

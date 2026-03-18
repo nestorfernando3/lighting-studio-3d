@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { SphereGeometry, RingGeometry, ConeGeometry, Plane, Vector3, Raycaster, Vector2, MathUtils, SpotLight, PointLight, RectAreaLight, Object3D, MeshBasicMaterial, Mesh, Group, DoubleSide, BufferGeometry, LineDashedMaterial, Line } from 'three';
 import { RectAreaLightHelper } from 'three/examples/jsm/helpers/RectAreaLightHelper.js';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
 
@@ -6,10 +6,10 @@ import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLigh
 RectAreaLightUniformsLib.init();
 
 const sharedGeometries = {
-    sphere: new THREE.SphereGeometry(0.15, 16, 16),
-    ring: new THREE.RingGeometry(0.22, 0.26, 32),
-    arrow: new THREE.ConeGeometry(0.05, 0.12, 4),
-    hitbox: new THREE.SphereGeometry(0.5, 12, 12) // Larger hitbox for easier touch selection
+    sphere: new SphereGeometry(0.15, 16, 16),
+    ring: new RingGeometry(0.22, 0.26, 32),
+    arrow: new ConeGeometry(0.05, 0.12, 4),
+    hitbox: new SphereGeometry(0.5, 12, 12) // Larger hitbox for easier touch selection
 };
 
 // Max drag constraints
@@ -18,6 +18,17 @@ const DRAG_CLAMP_Y_MIN = 0.5;
 const DRAG_CLAMP_Y_MAX = 5.0;
 const DRAG_MAX_DISTANCE = 5; // Max distance from center before ignoring drag
 const DRAG_TIMEOUT_MS = 10000; // Auto-cancel drag after 10 seconds
+
+function valueForLang(value, lang) {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+        return value[lang] || value.es || value.en || '';
+    }
+    return value || '';
+}
+
+function makeBilingualLabel(esText, enText) {
+    return { es: esText, en: enText };
+}
 
 export class LightingSystem {
     constructor(scene, camera, renderer) {
@@ -34,10 +45,10 @@ export class LightingSystem {
         // Drag state
         this.isDragging = false;
         this.draggedLight = null;
-        this.dragPlane = new THREE.Plane();
-        this.intersectionPoint = new THREE.Vector3();
-        this.raycaster = new THREE.Raycaster();
-        this.mouse = new THREE.Vector2();
+        this.dragPlane = new Plane();
+        this.intersectionPoint = new Vector3();
+        this.raycaster = new Raycaster();
+        this.mouse = new Vector2();
 
         // Callbacks
         this.onLightDragStart = null;
@@ -127,13 +138,13 @@ export class LightingSystem {
         this._dragOriginalPosition = light.position.clone();
 
         // Create a plane at the light's height facing the camera
-        const cameraDirection = new THREE.Vector3();
+        const cameraDirection = new Vector3();
         this.camera.getWorldDirection(cameraDirection);
         cameraDirection.y = 0;
         cameraDirection.normalize();
 
         this.dragPlane.setFromNormalAndCoplanarPoint(
-            new THREE.Vector3(0, 1, 0), // Horizontal plane
+            new Vector3(0, 1, 0), // Horizontal plane
             light.position
         );
 
@@ -194,8 +205,8 @@ export class LightingSystem {
             if (Math.sqrt(ix * ix + iz * iz) > DRAG_MAX_DISTANCE) return;
 
             // Apply position with tighter constraints
-            const newX = THREE.MathUtils.clamp(ix, -DRAG_CLAMP_XZ, DRAG_CLAMP_XZ);
-            const newZ = THREE.MathUtils.clamp(iz, -DRAG_CLAMP_XZ, DRAG_CLAMP_XZ);
+            const newX = MathUtils.clamp(ix, -DRAG_CLAMP_XZ, DRAG_CLAMP_XZ);
+            const newZ = MathUtils.clamp(iz, -DRAG_CLAMP_XZ, DRAG_CLAMP_XZ);
 
             this.draggedLight.position.x = newX;
             this.draggedLight.position.z = newZ;
@@ -258,15 +269,28 @@ export class LightingSystem {
         if (!light) return null;
         this._freeLightCounter++;
         const pos = light.position;
+        const sourceConfig = light.userData.config || {};
+        const sourceName = light.userData.displayName || light.userData.config?.name || name;
         const config = {
-            name: `${name} Copia`,
+            id: `${name}-copy-${this._freeLightCounter}`,
+            name: makeBilingualLabel(
+                `${valueForLang(sourceName, 'es')} Copia`,
+                `${valueForLang(sourceName, 'en')} Copy`
+            ),
             type: light.userData.type || 'fill',
             position: { x: pos.x + 0.5, y: pos.y, z: pos.z + 0.5 },
             intensity: light.intensity,
             color: `#${light.color.getHexString()}`,
-            role: `Copia de ${name}`,
+            coneAngle: sourceConfig.coneAngle ?? (light.isSpotLight ? (light.angle * 180) / Math.PI : undefined),
+            width: sourceConfig.width ?? (light.isRectAreaLight ? light.width : undefined),
+            height: sourceConfig.height ?? (light.isRectAreaLight ? light.height : undefined),
+            enabled: light.visible,
+            role: makeBilingualLabel(
+                `Copia de ${valueForLang(sourceName, 'es')}`,
+                `Copy of ${valueForLang(sourceName, 'en')}`
+            ),
             freeLight: true,
-            freeLightType: light.userData.freeLightType || 'point'
+            freeLightType: light.userData.freeLightType || light.userData.type || 'point'
         };
         this.createLight(config);
         return config;
@@ -277,10 +301,10 @@ export class LightingSystem {
     addFreeLight(lightType = 'spot') {
         this._freeLightCounter++;
         const typeLabels = {
-            spot: 'Spot',
-            point: 'Point',
-            directional: 'Directional',
-            rect: 'Softbox'
+            spot: makeBilingualLabel('Spot', 'Spot'),
+            point: makeBilingualLabel('Point', 'Point'),
+            directional: makeBilingualLabel('Directional', 'Directional'),
+            rect: makeBilingualLabel('Softbox', 'Softbox')
         };
         const typeConfigs = {
             spot: { type: 'key', intensity: 2.5, color: '#ffffff', position: { x: 1.5, y: 3.0, z: 1.5 } },
@@ -289,15 +313,26 @@ export class LightingSystem {
             rect: { type: 'rect', intensity: 3.0, color: '#fff5e8', position: { x: 1.0, y: 2.5, z: 2.0 } }
         };
         const cfg = typeConfigs[lightType] || typeConfigs.spot;
-        const name = `${typeLabels[lightType] || 'Luz'} ${this._freeLightCounter}`;
+        const label = typeLabels[lightType] || makeBilingualLabel('Light', 'Light');
+        const name = makeBilingualLabel(
+            `${label.es} ${this._freeLightCounter}`,
+            `${label.en} ${this._freeLightCounter}`
+        );
 
         const config = {
+            id: `free-${lightType}-${this._freeLightCounter}`,
             name,
             type: cfg.type,
             position: { ...cfg.position },
             intensity: cfg.intensity,
             color: cfg.color,
-            role: `${typeLabels[lightType] || 'Luz'} libre`,
+            coneAngle: lightType === 'spot' ? 45 : undefined,
+            width: lightType === 'rect' ? 2 : undefined,
+            height: lightType === 'rect' ? 1.5 : undefined,
+            role: makeBilingualLabel(
+                `${label.es} libre`,
+                `${label.en} light`
+            ),
             freeLight: true,
             freeLightType: lightType
         };
@@ -376,12 +411,16 @@ export class LightingSystem {
 
     createLight(config) {
         const { type, name, position, intensity, color, enabled } = config;
+        const key = config.id || (typeof name === 'string' ? name : valueForLang(name, 'es'));
 
         let light;
 
         switch (type) {
             case 'key':
-                light = new THREE.SpotLight(color, intensity, 0, Math.PI / 4, 0.5, 1.5);
+                {
+                    const coneAngleDeg = typeof config.coneAngle === 'number' ? config.coneAngle : 45;
+                    light = new SpotLight(color, intensity, 0, (coneAngleDeg * Math.PI) / 180, 0.5, 1.5);
+                }
                 light.castShadow = true;
                 const shadowSize = (typeof window !== 'undefined' && window.innerWidth < 768) ? 1024 : 2048;
                 light.shadow.mapSize.width = shadowSize;
@@ -393,30 +432,34 @@ export class LightingSystem {
                 break;
 
             case 'fill':
-                light = new THREE.PointLight(color, intensity, 0, 1.8);
+                light = new PointLight(color, intensity, 0, 1.8);
                 light.castShadow = false;
                 break;
 
             case 'rim':
             case 'back':
-                light = new THREE.SpotLight(color, intensity, 0, Math.PI / 3, 0.3, 1.5);
+                light = new SpotLight(color, intensity, 0, Math.PI / 3, 0.3, 1.5);
                 light.castShadow = false;
                 break;
 
             case 'rect': {
-                const rectLight = new THREE.RectAreaLight(color, intensity, 2, 1.5);
+                const rectWidth = typeof config.width === 'number' ? config.width : 2;
+                const rectHeight = typeof config.height === 'number' ? config.height : 1.5;
+                const rectLight = new RectAreaLight(color, intensity, rectWidth, rectHeight);
                 light = rectLight;
                 break;
             }
 
             default:
-                light = new THREE.PointLight(color, intensity, 0, 2);
+                light = new PointLight(color, intensity, 0, 2);
         }
 
         light.position.set(position.x, position.y, position.z);
-        light.name = name;
+        light.name = key;
         light.userData.type = type;
         light.userData.config = config;
+        light.userData.key = key;
+        light.userData.displayName = name;
         // Deep-clone the original position so reset always works,
         // even after sliders or drag mutate config.position
         light.userData.originalPosition = { x: position.x, y: position.y, z: position.z };
@@ -424,7 +467,7 @@ export class LightingSystem {
         light.visible = enabled !== false;
 
         if (light.target) {
-            const target = new THREE.Object3D();
+            const target = new Object3D();
             target.position.set(0, 1.6, 0);
             this.scene.add(target);
             light.target = target;
@@ -432,7 +475,7 @@ export class LightingSystem {
 
         this.scene.add(light);
         this.lights.push(light);
-        this.lightObjects.set(name, light);
+        this.lightObjects.set(key, light);
 
         this.createLightHelper(light, type, color);
         if (this.onChange) this.onChange();
@@ -441,35 +484,35 @@ export class LightingSystem {
     }
 
     createLightHelper(light, type, color) {
-        const helperGroup = new THREE.Group();
+        const helperGroup = new Group();
 
         // Main sphere (draggable)
-        const sphereMat = new THREE.MeshBasicMaterial({
+        const sphereMat = new MeshBasicMaterial({
             color: color,
             transparent: true,
             opacity: 0.95
         });
-        const sphere = new THREE.Mesh(sharedGeometries.sphere, sphereMat);
+        const sphere = new Mesh(sharedGeometries.sphere, sphereMat);
         helperGroup.add(sphere);
 
         // Invisible larger Hitbox for easier touch selection
-        const hitboxMat = new THREE.MeshBasicMaterial({ visible: false });
-        const hitbox = new THREE.Mesh(sharedGeometries.hitbox, hitboxMat);
+        const hitboxMat = new MeshBasicMaterial({ visible: false });
+        const hitbox = new Mesh(sharedGeometries.hitbox, hitboxMat);
         helperGroup.add(hitbox);
 
         // Outer ring
-        const ringMat = new THREE.MeshBasicMaterial({
+        const ringMat = new MeshBasicMaterial({
             color: color,
             transparent: true,
             opacity: 0.5,
-            side: THREE.DoubleSide
+            side: DoubleSide
         });
-        const ring = new THREE.Mesh(sharedGeometries.ring, ringMat);
+        const ring = new Mesh(sharedGeometries.ring, ringMat);
         helperGroup.add(ring);
 
         // Drag indicator arrows
-        const arrowsGroup = new THREE.Group();
-        const arrowMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 });
+        const arrowsGroup = new Group();
+        const arrowMat = new MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 });
 
         const directions = [
             { pos: [0.35, 0, 0], rot: [0, 0, -Math.PI / 2] },
@@ -479,7 +522,7 @@ export class LightingSystem {
         ];
 
         directions.forEach(d => {
-            const arrow = new THREE.Mesh(sharedGeometries.arrow, arrowMat);
+            const arrow = new Mesh(sharedGeometries.arrow, arrowMat);
             arrow.position.set(...d.pos);
             arrow.rotation.set(...d.rot);
             arrowsGroup.add(arrow);
@@ -501,16 +544,16 @@ export class LightingSystem {
         }
 
         // Connection line
-        const points = [light.position.clone(), new THREE.Vector3(0, 1.6, 0)];
-        const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
-        const lineMat = new THREE.LineDashedMaterial({
+        const points = [light.position.clone(), new Vector3(0, 1.6, 0)];
+        const lineGeo = new BufferGeometry().setFromPoints(points);
+        const lineMat = new LineDashedMaterial({
             color: color,
             transparent: true,
             opacity: 0.3,
             dashSize: 0.2,
             gapSize: 0.1
         });
-        const line = new THREE.Line(lineGeo, lineMat);
+        const line = new Line(lineGeo, lineMat);
         line.computeLineDistances();
         line.userData.light = light;
         line.userData.type = 'line';
@@ -538,7 +581,7 @@ export class LightingSystem {
                         pos.needsUpdate = true;
                     } else {
                         // Fallback for test environments without full BufferGeometry mock
-                        const points = [light.position.clone(), new THREE.Vector3(0, 1.6, 0)];
+                        const points = [light.position.clone(), new Vector3(0, 1.6, 0)];
                         helper.geometry.setFromPoints(points);
                     }
                     if (helper.computeLineDistances) helper.computeLineDistances();
@@ -586,6 +629,9 @@ export class LightingSystem {
         const light = this.getLight(name);
         if (light) {
             light.intensity = intensity;
+            if (light.userData.config) {
+                light.userData.config.intensity = intensity;
+            }
             if (this.onChange) this.onChange();
         }
     }
@@ -594,6 +640,9 @@ export class LightingSystem {
         const light = this.getLight(name);
         if (light) {
             light.color.set(color);
+            if (light.userData.config) {
+                light.userData.config.color = color;
+            }
 
             this.helpers.forEach(helper => {
                 if (helper.userData.light === light) {
@@ -616,6 +665,9 @@ export class LightingSystem {
         const light = this.getLight(name);
         if (light) {
             light.position[axis] = value;
+            if (light.userData.config?.position) {
+                light.userData.config.position[axis] = value;
+            }
             this.updateHelpers(); // updateHelpers calls onChange
         }
     }
@@ -625,6 +677,9 @@ export class LightingSystem {
         if (light) {
             light.visible = enabled;
             light.userData.enabled = enabled;
+            if (light.userData.config) {
+                light.userData.config.enabled = enabled;
+            }
             this.updateHelpers(); // updateHelpers calls onChange
         }
     }
