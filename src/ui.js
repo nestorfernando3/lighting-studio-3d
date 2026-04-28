@@ -101,6 +101,15 @@ export class UI {
         const presetName = presetNames[index];
         const rawPreset = getPreset(presetName);
         this.currentPreset = JSON.parse(JSON.stringify(rawPreset));
+        const localizedPreset = this._getLocalizedCurrentPreset();
+
+        this.navigator.index = this.currentPresetIndex;
+        this.navigator.updateProgress(this.currentPresetIndex);
+        this.navigator.updateLessonHeader(localizedPreset, this.currentPresetIndex);
+        this.navigator.updateGoalSection(localizedPreset);
+        this.navigator.updatePracticeSection(localizedPreset);
+        this.navigator.updateObserveSection(localizedPreset);
+        this.navigator.updateNavigation(this.currentPresetIndex);
 
         await switchModelForLighting(this.currentPreset.id);
 
